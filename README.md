@@ -28,13 +28,10 @@ Overview: OASIS-1 is a cross-sectional dataset consisting of a collection of 416
 The remaining subjects include healthy young, middle-aged, and older adults.
 
 #### Data Included:
-MRI Scans: 3-4 individual T1-weighted MRI scans per subject.
-
-Clinical Scores: Mini-Mental State Examination (MMSE) and Clinical Dementia Rating (CDR).
-
-Demographics: Age, gender, years of education, and socioeconomic status (SES).
-
-Derived Anatomy: Estimated total intracranial volume (eTIV), normalized whole-brain volume (nWBV), and atlas scaling factor (ASF).
+* MRI Scans: 3-4 individual T1-weighted MRI scans per subject.
+* Clinical Scores: Mini-Mental State Examination (MMSE) and Clinical Dementia Rating (CDR).
+* Demographics: Age, gender, years of education, and socioeconomic status (SES).
+* Derived Anatomy: Estimated total intracranial volume (eTIV), normalized whole-brain volume (nWBV), and atlas scaling factor (ASF).
 
 ### Backup Dataset:  Alzheimer's Disease Dataset
 Source: Kaggle
@@ -42,16 +39,11 @@ Source: Kaggle
 Overview: Unlike OASIS-1, which focuses on brain imaging, this Kaggle dataset is a flat CSV file containing clinical and lifestyle risk factors for 2,149 patients. (Synthetic dataset)
 
 #### Key Features (35 total):
-
-Demographics: Age (60–90), Gender, Ethnicity, Education Level.
-
-Lifestyle Factors: BMI, Smoking, Alcohol Consumption, Physical Activity, Diet Quality, and Sleep Quality.
-
-Medical History: Family history of Alzheimer’s, Cardiovascular Disease, Diabetes, Depression, Head Injury, and Hypertension.
-
-Clinical Vitals: Blood pressure (Systolic/Diastolic) and a full Cholesterol panel (Total, LDL, HDL, Triglycerides).
-
-Cognitive/Functional: MMSE, Functional Assessment scores, Memory Complaints, Behavioral Problems, and Activities of Daily Living (ADL) scores.
+* Demographics: Age (60–90), Gender, Ethnicity, Education Level.
+* Lifestyle Factors: BMI, Smoking, Alcohol Consumption, Physical Activity, Diet Quality, and Sleep Quality.
+* Medical History: Family history of Alzheimer’s, Cardiovascular Disease, Diabetes, Depression, Head Injury, and Hypertension.
+* Clinical Vitals: Blood pressure (Systolic/Diastolic) and a full Cholesterol panel (Total, LDL, HDL, Triglycerides).
+* Cognitive/Functional: MMSE, Functional Assessment scores, Memory Complaints, Behavioral Problems, and Activities of Daily Living (ADL) scores.
 
 #### Target Variable: 
 A binary Diagnosis column (0 = No Alzheimer's, 1 = Alzheimer's Disease).
