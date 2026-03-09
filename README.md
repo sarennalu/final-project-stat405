@@ -16,7 +16,7 @@ Chosen question: How well does total brain volume predict whether or not a patie
 Backup question: What is the posterior probability of Alzheimer’s given age and biological sex?
 
 ## Chosen Dataset Description
-### Primary Dataset: OASIS-1 (Open Access Series of Imaging Studies)
+### Primary Dataset: [OASIS-1 (Open Access Series of Imaging Studies)](https://sites.wustl.edu/oasisbrains/home/oasis-1/)
 Source: Washington University in St. Louis (Knight ADRC)
 
 Type: Neuroimaging (MRI) & Clinical Data
@@ -33,7 +33,7 @@ The remaining subjects include healthy young, middle-aged, and older adults.
 * Demographics: Age, gender, years of education, and socioeconomic status (SES).
 * Derived Anatomy: Estimated total intracranial volume (eTIV), normalized whole-brain volume (nWBV), and atlas scaling factor (ASF).
 
-### Backup Dataset:  Alzheimer's Disease Dataset
+### Backup Dataset:  [Alzheimer's Disease Dataset](https://www.kaggle.com/datasets/rabieelkharoua/alzheimers-disease-dataset)
 Source: Kaggle
 
 Overview: Unlike OASIS-1, which focuses on brain imaging, this Kaggle dataset is a flat CSV file containing clinical and lifestyle risk factors for 2,149 patients. (Synthetic dataset)
