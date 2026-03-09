@@ -2,7 +2,7 @@
 
 ## Potential Research Questions
 
-Chosen question: How well does total brain volume predict whether or not a patient has Alzheimer's, and, among diagnosed patients, the severity of dementia?
+Chosen question: How well does total brain volume predict whether or not a patient has Alzheimer's, and, among diagnosed patients, the severity of dementia? <br>
 Backup question: What is the posterior probability of Alzheimer’s given age and biological sex?
 
 ## Chosen Dataset Description
