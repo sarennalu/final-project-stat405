@@ -1,8 +1,9 @@
 # STAT 405 Final Project: Bayesian Modeling of Alzheimer’s Disease Risk Using Brain Volume and Clinical Factors
-Team: 
-Michael Güntert: contribution \
-Name 2: contribution \
-Name 3: contribution \
+Team:
+
+Michael Güntert: 58265232 \
+Name 2 \
+Name 3 
 
 ## Problem description
 Alzheimer’s disease (AD) is a neurodegenerative disorder characterized by progressive cognitive decline and structural brain changes. Brain imaging studies show that brain atrophy (reduction in brain volume) is associated with Alzheimer’s development.
@@ -18,6 +19,20 @@ Backup question: What is the posterior probability of Alzheimer’s given age an
 
 
 ### Backup Dataset
+
+## Bayesian Models
+### Model 1
+### Model 2
+### Model 3
+
+## Posterior Methods
+### Method 1
+### Method 2
+
+## Model Evalutaion
+### Posterior diagnostics / predictive checks?
+### Predictive Performance
+### Model Comparison
 
 ## Planned Methodology We Will Use
 
