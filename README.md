@@ -3,7 +3,7 @@ Team:
 
 Michael Güntert: 58265232 \
 Sarenna Ulman:  75550822 \
-Sachit Sharma 15141393 
+Sachit Sharma:  15141393 
 
 ## Problem description
 Alzheimer’s disease (AD) is a neurodegenerative disorder characterized by progressive cognitive decline and structural brain changes. Brain imaging studies show that brain atrophy (reduction in brain volume) is associated with Alzheimer’s development.
@@ -12,8 +12,11 @@ The project aims to investigate how brain structure and clinical risk factors in
 
 ## Potential Research Questions
 
-Chosen question: How well does total brain volume predict whether or not a patient has Alzheimer's, and, among diagnosed patients, the severity of dementia? <br>
-Backup question: What is the posterior probability of Alzheimer’s given age and biological sex?
+Primary question: How well does total brain volume predict whether or not a patient has Alzheimer's, and, among diagnosed patients, the severity of dementia? <br>
+Backup questions: 
+
+- What is the posterior probability of Alzheimer’s given age and biological sex?
+- How does socioeconomic status relate to the probability of having Alzheimer's disease? 
 
 ## Chosen Dataset Description
 ### Primary Dataset: [OASIS-1 (Open Access Series of Imaging Studies)](https://sites.wustl.edu/oasisbrains/home/oasis-1/)
