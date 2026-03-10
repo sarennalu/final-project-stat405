@@ -33,6 +33,16 @@ The remaining subjects include healthy young, middle-aged, and older adults.
 * Demographics: Age, gender, years of education, and socioeconomic status (SES).
 * Derived Anatomy: Estimated total intracranial volume (eTIV), normalized whole-brain volume (nWBV), and atlas scaling factor (ASF).
 
+- `Age`: age of the participant
+- `M/F`: biological sex
+- `Educ`: years of education
+- `SES`: socioeconomic status
+- `MMSE`: Mini-Mental State Examination score
+- `CDR`: Clinical Dementia Rating
+- `eTIV`: estimated total intracranial volume
+- `nWBV`: normalized whole-brain volume
+- `ASF`: atlas scaling factor
+
 ### Backup Dataset:  [Alzheimer's Disease Dataset](https://www.kaggle.com/datasets/rabieelkharoua/alzheimers-disease-dataset)
 Source: Kaggle
 
