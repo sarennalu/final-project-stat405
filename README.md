@@ -48,6 +48,9 @@ Overview: Unlike OASIS-1, which focuses on brain imaging, this Kaggle dataset is
 #### Target Variable: 
 A binary Diagnosis column (0 = No Alzheimer's, 1 = Alzheimer's Disease).
 
+## How to Obtain the Chosen Dataset
+Click on [this link](https://sites.wustl.edu/oasisbrains/files/2024/04/oasis_cross-sectional-5708aa0a98d82080.xlsx) to download the dataset to your local downloads folder.
+
 ## Bayesian Models
 ### Model 1
 ### Model 2

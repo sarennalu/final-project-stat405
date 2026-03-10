@@ -11,6 +11,7 @@
 
 # Rproj files
 .Rproj
+final-project-stat405.Rproj
 
 # Example code in package build process
 *-Ex.R
