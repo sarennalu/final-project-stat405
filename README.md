@@ -3,7 +3,7 @@ Team:
 
 Michael Güntert: 58265232 \
 Sarenna Ulman:  75550822 \
-Name 3 
+Sachit Sharma 15141393 \ 
 
 ## Problem description
 Alzheimer’s disease (AD) is a neurodegenerative disorder characterized by progressive cognitive decline and structural brain changes. Brain imaging studies show that brain atrophy (reduction in brain volume) is associated with Alzheimer’s development.
