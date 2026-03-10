@@ -61,19 +61,9 @@ A binary Diagnosis column (0 = No Alzheimer's, 1 = Alzheimer's Disease).
 ## How to Obtain the Chosen Dataset
 Click on [this link](https://sites.wustl.edu/oasisbrains/files/2024/04/oasis_cross-sectional-5708aa0a98d82080.xlsx) to download the dataset to your local downloads folder.
 
-## Bayesian Models
-### Model 1
-### Model 2
-### Model 3
-
 ## Posterior Methods
 ### Method 1
 ### Method 2
-
-## Model Evalutaion
-### Posterior diagnostics / predictive checks?
-### Predictive Performance
-### Model Comparison
 
 ## Planned Methodology We Will Use
 
