@@ -69,7 +69,18 @@ Click on [this link](https://sites.wustl.edu/oasisbrains/files/2024/04/oasis_cro
 ### Method 1
 ### Method 2
 
-## Planned Methodology We Will Use
+## Planned Methodology
+### 1. Data Cleaning and Preprocessing
+Observations with missing or inconsistent values will be removed or handled appropriately (depending on what question we are tackling). Continuous variables such as age and normalized whole brain volume (nWBV) will be inspected for outliers and standardized if necessary. Categorical variables such as sex and Alzheimer’s diagnosis will be converted into numerical or factor variables suitable for modeling.
+
+### 2. Exploratory Data Analysis
+We will conduct exploratory data analysis to better understand the relationships between variables. This will include visualizing the distributions of key variables such as age, brain volume, and cognitive scores. We will compare brain volume between Alzheimer’s and non-Alzheimer’s subjects using boxplots and density plots. Scatterplots and correlation analysis will be used to examine the relationship between brain volume, age, and dementia severity measures such as MMSE or CDR.
+
+### 3. Bayesian Modeling (need some edit)
+We will implement Bayesian regression models to study the relationship between brain volume and Alzheimer’s disease outcomes. In particular, we plan to use Bayesian logistic regression to model the probability of Alzheimer’s diagnosis based on predictors such as normalized brain volume, age, and sex. Additionally, we may use an ordinal regression model to analyze dementia severity measured by the Clinical Dementia Rating (CDR). Posterior distributions of model parameters will be estimated using Hamiltonian Monte Carlo (HMC) implemented in Stan through the cmdstanr package in R.
+
+### 4. Model Evaluation
+After fitting the models, we will evaluate their performance and reliability using several diagnostic and predictive tools. Convergence of the MCMC sampler will be assessed using trace plots, effective sample sizes, and the $\hat{R}$ statistic. Posterior predictive checks will be used to compare simulated data from the model with the observed data. Predictive performance will also be assessed using cross-validation methods.
 
 ## How the Work will be Divided
 
