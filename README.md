@@ -89,6 +89,19 @@ After fitting the models, we will evaluate their performance and reliability usi
 
 ## How the Work will be Divided
 
+Initially, we plan to have different people working simultaneouslt on the preprocessing stage, performing different tasks such as exploratory data visualisation, data cleaning and preprocessing. One person will also have the responsibility of doing a literature review comparing our report with the scientific consensus on the topic.  
+
+Based on the proposal feedback, we will pick our final research questions and brainstorm together to create an appropriate bayesian model. Then we plan to divide the different parts of the modelling phase such that every person gets experience in using computational tools for posterior computation. We will either all work on separate methods of posterior computation and compare results or have two people collaborate on one method while the third member works on a separate method. 
+
+We will then assign different model diagnostic tasks to different people. 
+
+#### 3. 
+
+
+#### 4.
+
+
+
 ## Coding Practices and Important Notes
 
 ### Feature Branch System
