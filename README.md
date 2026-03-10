@@ -95,10 +95,6 @@ Based on the proposal feedback, we will pick our final research questions and br
 
 We will then assign different model diagnostic tasks to different people. 
 
-#### 3. 
-
-
-#### 4.
 
 
 
