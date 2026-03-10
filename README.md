@@ -78,7 +78,7 @@ Our workflow will be using a feature branch system.
 3. If the team member approves the review, the code can be merged into the `main` branch.
 
 ### Virtual Environment Notes
-To obtain the virtual environment libraries, please run `install.packages("renv")` in the console.
-To initialize the virtual environment, please run `renv::restore()` from inside the repository in the console.
+To obtain the virtual environment libraries, please run `install.packages("renv")` in the console. <br>
+To initialize the virtual environment, please run `renv::restore()` from inside the repository in the console. <br>
 If you install a package, (ex `install.packages("tidyverse")`), 
 please subsequently run `renv::snapshot()` to keep the virtual environment updated.
