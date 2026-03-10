@@ -54,3 +54,6 @@ rsconnect/
 
 # System files
 .DS_Store
+
+# notebook pdfs - maybe delete this later
+notebooks/*.pdf
