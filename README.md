@@ -76,12 +76,13 @@ Observations with missing or inconsistent values will be removed or handled appr
 ### 2. Exploratory Data Analysis
 We will conduct exploratory data analysis to better understand the relationships between variables. This will include visualizing the distributions of key variables such as age, brain volume, and cognitive scores. We will compare brain volume between Alzheimer’s and non-Alzheimer’s subjects using boxplots and density plots. Scatterplots and correlation analysis will be used to examine the relationship between brain volume, age, and dementia severity measures such as MMSE or CDR.
 
-### 3. Bayesian Modeling (need some edit)
-We will use Bayesian statistical models to study the relationship between brain structure and Alzheimer’s disease outcomes. In particular, we plan to use regression-based Bayesian models to examine how variables such as normalized brain volume, age, and biological sex relate to Alzheimer’s diagnosis and measures of dementia severity.
+### 3. Bayesian Modeling 
+We will use Bayesian statistical models to study the relationship between brain structure and Alzheimer’s disease outcomes. In particular, we plan to use regression-based Bayesian models to examine how variables such as normalized brain volume, age, and biological sex relate to Alzheimer’s diagnosis and measures of dementia severity. 
+We will use appropriate transformations to constrain parameters where necessary. 
 
 Depending on the structure of the dataset, we may consider different model formulations appropriate for the type of outcome variable, such as models for binary outcomes (e.g., diagnosis) or ordered categorical outcomes. These models will allow us to estimate the posterior distribution of the relationships between brain volume and Alzheimer’s-related outcomes.
 
-Posterior inference will be performed using Markov Chain Monte Carlo (MCMC) methods, implemented in Stan via the cmdstanr package in R
+Posterior inference will be performed using Markov Chain Monte Carlo (MCMC) methods, implemented in Stan via the cmdstanr package in R. 
 
 ### 4. Model Evaluation
 After fitting the models, we will evaluate their performance and reliability using several diagnostic and predictive tools. Convergence of the MCMC sampler will be assessed using trace plots, effective sample sizes, and the $\hat{R}$ statistic. Posterior predictive checks will be used to compare simulated data from the model with the observed data. Predictive performance will also be assessed using cross-validation methods.
