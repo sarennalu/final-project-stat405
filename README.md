@@ -2,7 +2,7 @@
 Team:
 
 Michael Güntert: 58265232 \
-Name 2 \
+Sarenna Ulman:  75550822 \
 Name 3 
 
 ## Problem description
@@ -64,10 +64,17 @@ A binary Diagnosis column (0 = No Alzheimer's, 1 = Alzheimer's Disease).
 
 ## Planned Methodology We Will Use
 
-Our workflow will be using a feature branch system.  
+## How the Work will be Divided
 
+## Coding Practices and Important Notes
+
+### Feature Branch System
+Our workflow will be using a feature branch system.  
 1. For any issues and bugfixes, a separate branch should be created.
 2. Once the work is done, a pull request should be created and reviewed by another team member.
 3. If the team member approves the review, the code can be merged into the `main` branch.
 
-## How the Work will be Divided
+### Virtual Environment Notes
+To initialize the virtual environment, please run `renv::restore()` in the terminal.
+If you install a package, (ex `install.packages("tidyverse")`), 
+please subsequently run `renv::snapshot()` to keep the virtual environment updated.
