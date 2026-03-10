@@ -1,0 +1,17 @@
+---
+title: "Final Project - Bayesian Analysis of Alzheimers Data"
+output: pdf_document
+---
+
+Sarenna Ulman, Sachit Sharma, Michael Güntert
+
+```{r}
+library(openxlsx)
+```
+
+```{r}
+# reading in our chosen dataset from the data/raw folder
+data_raw = read.xlsx("../data/raw/oasis_cross-sectional-5708aa0a98d82080.xlsx")
+head(data_raw)
+```
+
