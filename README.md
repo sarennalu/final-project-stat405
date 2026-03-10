@@ -16,7 +16,8 @@ Primary question: How well does total brain volume predict whether or not a pati
 Backup questions: 
 
 - What is the posterior probability of Alzheimer’s given age and biological sex?
-- How does socioeconomic status relate to the probability of having Alzheimer's disease? 
+- How does socioeconomic status relate to the probability of having Alzheimer's disease?
+- Do individuals with higher education show less brain atrophy at the same CDR level?
 
 ## Chosen Dataset Description
 ### Primary Dataset: [OASIS-1 (Open Access Series of Imaging Studies)](https://sites.wustl.edu/oasisbrains/home/oasis-1/)
