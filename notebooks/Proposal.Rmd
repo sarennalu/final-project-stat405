@@ -1,0 +1,115 @@
+---
+title: "STAT 405 Final Project: Bayesian Modeling of Alzheimer’s Disease Risk Using Brain Volume and Clinical Factors"
+output: pdf_document
+---
+
+Sarenna Ulman, Sachit Sharma, Michael Güntert
+
+```{r}
+library(openxlsx)
+```
+
+```{r}
+# reading in our chosen dataset from the data/raw folder
+data_raw = read.xlsx("../data/raw/oasis_cross-sectional-5708aa0a98d82080.xlsx")
+head(data_raw)
+```
+Team:
+
+Michael Güntert: 58265232 \
+Sarenna Ulman:  75550822 \
+Sachit Sharma:  15141393 
+
+## Problem description
+Alzheimer’s disease (AD) is a neurodegenerative disorder characterized by progressive cognitive decline and structural brain changes. Brain imaging studies show that brain atrophy (reduction in brain volume) is associated with Alzheimer’s development.
+
+The project aims to investigate how brain structure and clinical risk factors influence Alzheimer’s disease probability using Bayesian statistical modeling.
+
+## Potential Research Questions
+
+Primary question: How well does total brain volume predict whether or not a patient has Alzheimer's, and, among diagnosed patients, the severity of dementia? <br>
+Backup questions: 
+
+- What is the posterior probability of Alzheimer’s given age and biological sex?
+- How does socioeconomic status relate to the probability of having Alzheimer's disease?
+- Do individuals with higher education show less brain atrophy at the same CDR level?
+
+## Chosen Dataset Description
+### Primary Dataset: [OASIS-1 (Open Access Series of Imaging Studies)](https://sites.wustl.edu/oasisbrains/home/oasis-1/)
+Source: Washington University in St. Louis (Knight ADRC)
+
+Type: Neuroimaging (MRI) & Clinical Data
+
+Overview: OASIS-1 is a cross-sectional dataset consisting of a collection of 416 subjects aged 18 to 96. It was specifically designed to provide high-quality brain imaging data to the scientific community for free.
+
+#### Key Subjects: 
+* 100 subjects over age 60 were clinically diagnosed with very mild to moderate Alzheimer’s disease (AD).
+The remaining subjects include healthy young, middle-aged, and older adults.
+
+#### Data Included:
+* MRI Scans: 3-4 individual T1-weighted MRI scans per subject.
+* Clinical Scores: Mini-Mental State Examination (MMSE) and Clinical Dementia Rating (CDR).
+* Demographics: Age, gender, years of education, and socioeconomic status (SES).
+* Derived Anatomy: Estimated total intracranial volume (eTIV), normalized whole-brain volume (nWBV), and atlas scaling factor (ASF).
+
+- `Age`: age of the participant
+- `M/F`: biological sex
+- `Educ`: years of education
+- `SES`: socioeconomic status
+- `MMSE`: Mini-Mental State Examination score
+- `CDR`: Clinical Dementia Rating
+- `eTIV`: estimated total intracranial volume
+- `nWBV`: normalized whole-brain volume
+- `ASF`: atlas scaling factor
+
+### Backup Dataset:  [Alzheimer's Disease Dataset](https://www.kaggle.com/datasets/rabieelkharoua/alzheimers-disease-dataset)
+Source: Kaggle
+
+Overview: Unlike OASIS-1, which focuses on brain imaging, this Kaggle dataset is a flat CSV file containing clinical and lifestyle risk factors for 2,149 patients. (Synthetic dataset)
+
+#### Key Features (35 total):
+* Demographics: Age (60–90), Gender, Ethnicity, Education Level.
+* Lifestyle Factors: BMI, Smoking, Alcohol Consumption, Physical Activity, Diet Quality, and Sleep Quality.
+* Medical History: Family history of Alzheimer’s, Cardiovascular Disease, Diabetes, Depression, Head Injury, and Hypertension.
+* Clinical Vitals: Blood pressure (Systolic/Diastolic) and a full Cholesterol panel (Total, LDL, HDL, Triglycerides).
+* Cognitive/Functional: MMSE, Functional Assessment scores, Memory Complaints, Behavioral Problems, and Activities of Daily Living (ADL) scores.
+
+#### Target Variable: 
+A binary Diagnosis column (0 = No Alzheimer's, 1 = Alzheimer's Disease).
+
+## How to Obtain the Chosen Dataset
+Click on [this link](https://sites.wustl.edu/oasisbrains/files/2024/04/oasis_cross-sectional-5708aa0a98d82080.xlsx) to download the dataset to your local downloads folder.
+
+## Posterior Methods
+### Method 1
+MCMC using STAN
+### Method 2
+
+## Planned Methodology
+### 1. Data Cleaning and Preprocessing
+Observations with missing or inconsistent values will be removed or handled appropriately (depending on what question we are tackling). Continuous variables such as age and normalized whole brain volume (nWBV) will be inspected for outliers and standardized if necessary. Categorical variables such as sex and Alzheimer’s diagnosis will be converted into numerical or factor variables suitable for modeling.
+
+### 2. Exploratory Data Analysis
+We will conduct exploratory data analysis to better understand the relationships between variables. This will include visualizing the distributions of key variables such as age, brain volume, and cognitive scores. We will compare brain volume between Alzheimer’s and non-Alzheimer’s subjects using boxplots and density plots. Scatterplots and correlation analysis will be used to examine the relationship between brain volume, age, and dementia severity measures such as MMSE or CDR.
+
+### 3. Bayesian Modeling 
+We will use Bayesian statistical models to study the relationship between brain structure and Alzheimer’s disease outcomes. In particular, we plan to use regression-based Bayesian models to examine how variables such as normalized brain volume, age, and biological sex relate to Alzheimer’s diagnosis and measures of dementia severity. 
+We will use appropriate transformations to constrain parameters where necessary. We will consider creating credible intervals for the parameters corresponding to the variables of interest and visualizing the posterior particles through a weigthed scatterplot. 
+
+Depending on the final qustions chosen, we may consider different model formulations appropriate for the type of outcome variable, such as models for binary outcomes (e.g., diagnosis) or ordered categorical outcomes. These models will allow us to estimate the posterior distribution of the relationships between brain volume (and other covariates) and Alzheimer’s-related outcomes.
+
+Posterior inference will be performed using Markov Chain Monte Carlo (MCMC) methods, implemented in Stan via the cmdstanr package in R. 
+
+### 4. Model Evaluation
+After fitting the models, we will evaluate their performance and reliability using several diagnostic and predictive tools. Convergence of the MCMC sampler will be assessed using trace plots, effective sample sizes, and the $\hat{R}$ statistic. Posterior predictive checks will be used to compare simulated data from the model with the observed data. Predictive performance will also be assessed using cross-validation methods.
+
+## How the Work will be Divided
+
+Initially, we plan to be all working simultaneously on the preprocessing stage, performing different tasks such as exploratory data visualisation, data cleaning and preprocessing. One person will also have the responsibility of doing a literature review comparing our report with the scientific consensus on the topic.  
+
+Based on the proposal feedback, we will pick our final research questions and brainstorm together to create an appropriate bayesian model. Then we plan to divide the different parts of the modelling phase such that every person gets experience in using computational tools for posterior computation. We will either all work on separate methods of posterior computation and compare results or have two people collaborate on one method while the third member works on a separate method. 
+
+We will then assign different model diagnostic tasks to different people. 
+
+
+
