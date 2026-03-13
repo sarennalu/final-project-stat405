@@ -3,7 +3,6 @@ title: "STAT 405 Final Project: Bayesian Modeling of Alzheimer’s Disease Risk 
 output: pdf_document
 ---
 
-Sarenna Ulman, Sachit Sharma, Michael Güntert
 
 ```{r}
 library(openxlsx)
