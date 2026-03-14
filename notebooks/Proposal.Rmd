@@ -82,7 +82,9 @@ Click on [this link](https://sites.wustl.edu/oasisbrains/files/2024/04/oasis_cro
 ## Posterior Methods
 ### Method 1
 MCMC using STAN
+
 ### Method 2
+Variational Inference
 
 ## Planned Methodology
 ### 1. Data Cleaning and Preprocessing
