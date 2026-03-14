@@ -81,6 +81,10 @@ A binary Diagnosis column (0 = No Alzheimer's, 1 = Alzheimer's Disease).
 ## How to Obtain the Chosen Dataset
 Click on [this link](https://sites.wustl.edu/oasisbrains/files/2024/04/oasis_cross-sectional-5708aa0a98d82080.xlsx) to download the dataset to your local downloads folder.
 
+URL: https://sites.wustl.edu/oasisbrains/files/2024/04/oasis_cross-sectional-5708aa0a98d82080.xlsx
+
+Original Dataset at: https://sites.wustl.edu/oasisbrains/home/oasis-1/
+
 ## Posterior Methods
 ### Method 1
 MCMC using STAN
