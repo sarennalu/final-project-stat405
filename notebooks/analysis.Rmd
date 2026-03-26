@@ -6,12 +6,42 @@ output: pdf_document
 Sarenna Ulman, Sachit Sharma, Michael Güntert
 
 ```{r}
+# imports 
 library(openxlsx)
+library(dplyr)
 ```
 
 ```{r}
 # reading in our chosen dataset from the data/raw folder
 data_raw = read.xlsx("../data/raw/oasis_cross-sectional-5708aa0a98d82080.xlsx")
 head(data_raw)
+```
+First, we will check the dataset for NA values.
+```{r}
+cat("Total number of observations in the dataset:", nrow(data_raw) * ncol(data_raw), "\n")
+# print(any(is.na(data_raw)))
+cat("Total number of NA values:", sum(is.na(data_raw)), '\n')
+
+# check which columns contain NA values
+cat("NA values for each feature in the dataset:", '\n')
+print(colSums(is.na(data_raw)))
+```
+There are 201 missing values in the target column CDR. It does not make sense to try to impute the values in the target column, so we will just remove them.
+```{r}
+data_processed <- data_raw %>%
+  filter(!is.na(CDR))
+# cat("NA values for each column after removing the NAs from CDR column:", '\n')
+# colSums(is.na(data_processed))
+data_processed$SES
+```
+Since there are only 19 more missing values in the `SES` column, and we do not anticipate using the `SES` feature in our final analysis, we can just impute those values for now.
+```{r}
+mean_SES <-  mean(data_processed$SES, na.rm = TRUE) # impute using mean of SES column
+
+data_processed <- data_processed %>%
+  mutate(SES = if_else(is.na(SES), mean_SES, SES))
+
+# verify all NA values were removed
+any(is.na(data_processed))
 ```
 
