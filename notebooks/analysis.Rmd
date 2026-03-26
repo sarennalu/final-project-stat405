@@ -29,6 +29,7 @@ cat("Total number of NA values:", sum(is.na(data_raw)), '\n')
 cat("NA values for each feature in the dataset:", '\n')
 print(colSums(is.na(data_raw)))
 ```
+
 There are 201 missing values in the target column CDR. It does not make sense to try to impute values in the target column, so we will just remove them.
 ```{r}
 data_cleaned <- data_raw %>%
@@ -68,4 +69,19 @@ mmse_outlier <- data_cleaned$MMSE[abs(scale(data_cleaned$MMSE)) > outliar_thresh
 
 data_cleaned <- data_cleaned %>%
   filter(MMSE > mmse_outlier)
+```
+
+### Processing Data
+First, we will convert the target variable, hand variable, and sex variable into binary variables.
+```{r}
+# verify that the hand and sex features only have the values expected 
+table(data_cleaned$Hand)
+table(data_cleaned$`M/F`)
+```
+Observe that the `Hand` feature only has the value "R", therefore every observation has the same value, rendering this feature's predictive power as nonexistent.  Thus, we can remove this column.
+``` {r}
+data_processed <- data_cleaned %>%
+  mutate(CDR_binary = if_else(CDR == 0, 0, 1),
+         sex_male = if_else(`M/F` == "M", 1, 0)) %>%
+  select(-`M/F`, -Hand)
 ```
