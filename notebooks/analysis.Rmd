@@ -9,6 +9,7 @@ Sarenna Ulman, Sachit Sharma, Michael Güntert
 # imports 
 library(openxlsx)
 library(dplyr)
+library(ggplot2)
 ```
 
 ### Importing Raw Dataset
@@ -85,3 +86,54 @@ data_processed <- data_cleaned %>%
          sex_male = if_else(`M/F` == "M", 1, 0)) %>%
   select(-`M/F`, -Hand)
 ```
+Finally, we store the processed data as a .csv file within our repository.
+```{r}
+# write.csv(data_processed, file = "data/processed/oasis_processed.csv")
+```
+
+### Exploratory Data Analysis
+First, lets check the target variable to see if it is balanced.
+```{r}
+data.frame(
+  Diagnosis = c("No Diagnosis", "Diagnosis"),
+  Frequency = as.vector(table(data_processed$CDR_binary))
+)
+```
+The target variable is somewhat balanced.  But, we should keep in mind the model will lean towards predicting no diagnosis more often.
+
+Next, lets check the distributions of other important variables.
+```{r}
+data.frame(
+  Biological_Sex = c("Female", "Male"),
+  Frequency = as.vector(table(data_processed$sex_male))
+)
+```
+The dataset has significantly more females than males.
+```{r}
+data_processed %>%
+  mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 5))) %>%
+  ggplot(aes(x = Age_binned)) + 
+    geom_bar(fill = "grey", color = "black") + 
+    xlab("Age") +
+    ylab("Frequency") + 
+    ggtitle("Frequency of Ages grouped in 5 year bins") +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+```
+The distribution of ages is left-skewed, with most common ages being late 60s to late 70s.
+```{r}
+ggplot(data = data_processed, aes(x=nWBV)) +
+  geom_histogram(binwidth = 0.01, fill = "lightblue", color = "blue") +
+  xlab("Normalized Whole Brain Volume") +
+  ylab("Frequency") +
+  ggtitle("Distribution of Normalized Whole Brain Volume")
+  
+```
+The distribution of normalized whole brain volume within the dataset is unimodal and roughly symmetric, a very rough approximation of the normal distribution.
+```{r}
+ggplot(data = data_processed, aes(x=MMSE)) + 
+  geom_bar(fill = "lightgreen", color = "darkgreen") + 
+  xlab("Mini Mental State Examination Score") + 
+  ylab("Frequency") + 
+  ggtitle("Distribution of Cognitive Ability Scores")
+```
+The distribution of cognitive ability scores is very left-skewed and increasing, with the significant majority of the patients having a score over 26.
