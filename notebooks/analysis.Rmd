@@ -11,11 +11,14 @@ library(openxlsx)
 library(dplyr)
 ```
 
+### Importing Raw Dataset
 ```{r}
 # reading in our chosen dataset from the data/raw folder
 data_raw = read.xlsx("../data/raw/oasis_cross-sectional-5708aa0a98d82080.xlsx")
 head(data_raw)
 ```
+
+### Cleaning Dataset
 First, we will check the dataset for NA values.
 ```{r}
 cat("Total number of observations in the dataset:", nrow(data_raw) * ncol(data_raw), "\n")
@@ -26,22 +29,43 @@ cat("Total number of NA values:", sum(is.na(data_raw)), '\n')
 cat("NA values for each feature in the dataset:", '\n')
 print(colSums(is.na(data_raw)))
 ```
-There are 201 missing values in the target column CDR. It does not make sense to try to impute the values in the target column, so we will just remove them.
+There are 201 missing values in the target column CDR. It does not make sense to try to impute values in the target column, so we will just remove them.
 ```{r}
-data_processed <- data_raw %>%
+data_cleaned <- data_raw %>%
   filter(!is.na(CDR))
-# cat("NA values for each column after removing the NAs from CDR column:", '\n')
-# colSums(is.na(data_processed))
-data_processed$SES
+cat("NA values for each column after removing the NAs from CDR column:", '\n')
+colSums(is.na(data_cleaned))
 ```
 Since there are only 19 more missing values in the `SES` column, and we do not anticipate using the `SES` feature in our final analysis, we can just impute those values for now.
 ```{r}
-mean_SES <-  mean(data_processed$SES, na.rm = TRUE) # impute using mean of SES column
+mean_SES <-  mean(data_cleaned$SES, na.rm = TRUE) # impute using mean of SES column
 
-data_processed <- data_processed %>%
+data_cleaned <- data_cleaned %>%
   mutate(SES = if_else(is.na(SES), mean_SES, SES))
 
 # verify all NA values were removed
-any(is.na(data_processed))
+any(is.na(data_cleaned))
 ```
+```{r}
+summary(data_cleaned)
+```
+There do not appear to be any outliers in this dataset.  Just to be sure, we will check if any value is 3.5 standard deviations above or below its column mean.
+Since we are going to be using bayesian methods, which are robust to outliers if the model is well specified, we can use a higher threshold for catching outliers than normal.
+```{r}
+outliar_threshold <- 3.5
+outliers <- data_cleaned %>%
+  summarise(across(where(is.numeric), ~sum(abs(scale(.)) > outliar_threshold)))
 
+outliers
+cat("Counts of each value in the CDR column:")
+table(data_cleaned$CDR)
+```
+Since we will be converting CDR to a binary variable where every value above 0 will be converted to 1, we do not need to remove those outliers.
+Since there is only one outlier otherwise, we can safely remove that observation from the dataset.
+```{r}
+# find mmse outlier
+mmse_outlier <- data_cleaned$MMSE[abs(scale(data_cleaned$MMSE)) > outliar_threshold]
+
+data_cleaned <- data_cleaned %>%
+  filter(MMSE > mmse_outlier)
+```
