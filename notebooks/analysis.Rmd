@@ -221,7 +221,7 @@ plot_age_diagnosed + plot_age_notdiagnosed
 As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
 
 
-### Analyzing the Correlation between Key Features
+### Analyzing the Correlation between Key Predictor Features
 ```{r}
 corrplot(corr_matrix)
 ```
