@@ -10,6 +10,7 @@ Sarenna Ulman, Sachit Sharma, Michael Güntert
 library(openxlsx)
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 ```
 
 ### Importing Raw Dataset
@@ -122,7 +123,7 @@ data_processed %>%
 The distribution of ages is left-skewed, with most common ages being late 60s to late 70s.
 ```{r}
 ggplot(data = data_processed, aes(x=nWBV)) +
-  geom_histogram(binwidth = 0.01, fill = "lightblue", color = "blue") +
+  geom_histogram(binwidth = 0.01, fill = "orange", color = "darkorange") +
   xlab("Normalized Whole Brain Volume") +
   ylab("Frequency") +
   ggtitle("Distribution of Normalized Whole Brain Volume")
@@ -137,3 +138,69 @@ ggplot(data = data_processed, aes(x=MMSE)) +
   ggtitle("Distribution of Cognitive Ability Scores")
 ```
 The distribution of cognitive ability scores is very left-skewed and increasing, with the significant majority of the patients having a score over 26.
+
+### Comparing Diagnosed Patients vs Non Diagnosed
+```{r}
+diagnosed <- data_processed %>%
+  filter(CDR_binary == 1)
+
+not_diagnosed <- data_processed %>%
+  filter(CDR_binary == 0)
+```
+
+```{r}
+data.frame(
+  Biological_Sex = c("Female", "Male"),
+  Diagnosed = as.vector(table(diagnosed$sex_male)),
+  NotDiagnosed = as.vector(table(not_diagnosed$sex_male))
+)
+```
+```{r}
+plot_age_diagnosed <- diagnosed %>%
+  mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 5))) %>%
+  ggplot(aes(x = Age_binned)) + 
+    geom_bar(fill = "red", color = "darkred") + 
+    xlab("Age") +
+    ylab("Frequency") + 
+    ggtitle("Patients Diagnosed with Alzheimers") +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+plot_age_notdiagnosed <- not_diagnosed %>%
+  mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 5))) %>%
+  ggplot(aes(x = Age_binned)) + 
+    geom_bar(fill = "lightblue", color = "blue") + 
+    xlab("Age") +
+    ylab("Frequency") + 
+    ggtitle("Patients Not Diagnosed") +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+plot_age_diagnosed + plot_age_notdiagnosed
+```
+As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
+```{r}
+diag_nwbv <- ggplot(data = diagnosed, aes(x=nWBV)) +
+  geom_histogram(binwidth = 0.025, fill = "red", color = "darkred") +
+  xlab("Normalized Whole Brain Volume") +
+  ylab("Frequency") +
+  ggtitle("Diagnosed Patients")
+notdiag_nwbv <- ggplot(data = not_diagnosed, aes(x=nWBV)) +
+  geom_histogram(binwidth = 0.025, fill = "lightblue", color = "blue") +
+  xlab("Normalized Whole Brain Volume") +
+  ylab("Frequency") +
+  ggtitle("Non-Diagnosed Patients")
+diag_nwbv + notdiag_nwbv
+```
+From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
+```{r}
+mmse_diag_plot <- ggplot(data = diagnosed, aes(x=MMSE)) + 
+  geom_bar(fill = "red", color = "darkred") + 
+  xlab("Mini Mental State Examination Score") + 
+  ylab("Frequency") + 
+  ggtitle("Diagnosed Patients")
+mmse_notdiag_plot <- ggplot(data = not_diagnosed, aes(x=MMSE)) + 
+  geom_bar(fill = "lightblue", color = "blue") + 
+  xlab("Mini Mental State Examination Score") + 
+  ylab("Frequency") + 
+  ggtitle("Non-Diagnosed Patients")
+mmse_diag_plot + mmse_notdiag_plot
+```
+The MMSE scores of non-diagnosed patients are usually quite high, meanwhile the MMSE scores of diagnosed patients can vary greatly.
+
