@@ -142,12 +142,55 @@ The distribution of cognitive ability scores is very left-skewed and increasing,
 
 ### Comparing Diagnosed Patients vs Non Diagnosed
 ```{r}
+data_processed_numeric <- data_processed %>%
+  select(where(is.numeric)) 
+# data_processed_numeric
+
+corr_matrix <- cor(data_processed_numeric)
+corrplot(corr_matrix)
+
+```
+Observe that the target variable is most closely correlated with nWBV and MMSE.  
+```{r}
 diagnosed <- data_processed %>%
   filter(CDR_binary == 1)
 
 not_diagnosed <- data_processed %>%
   filter(CDR_binary == 0)
 ```
+
+```{r}
+diag_nwbv <- ggplot(data = diagnosed, aes(x=nWBV)) +
+  geom_histogram(binwidth = 0.025, fill = "red", color = "darkred") +
+  xlab("Normalized Whole Brain Volume") +
+  ylab("Frequency") +
+  ggtitle("Diagnosed Patients")
+notdiag_nwbv <- ggplot(data = not_diagnosed, aes(x=nWBV)) +
+  geom_histogram(binwidth = 0.025, fill = "lightblue", color = "blue") +
+  xlab("Normalized Whole Brain Volume") +
+  ylab("Frequency") +
+  ggtitle("Non-Diagnosed Patients")
+diag_nwbv + notdiag_nwbv
+```
+From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
+
+```{r}
+mmse_diag_plot <- ggplot(data = diagnosed, aes(x=MMSE)) + 
+  geom_bar(fill = "red", color = "darkred") + 
+  xlab("Mini Mental State Examination Score") + 
+  ylab("Frequency") + 
+  ggtitle("Diagnosed Patients")
+mmse_notdiag_plot <- ggplot(data = not_diagnosed, aes(x=MMSE)) + 
+  geom_bar(fill = "lightblue", color = "blue") + 
+  xlab("Mini Mental State Examination Score") + 
+  ylab("Frequency") + 
+  ggtitle("Non-Diagnosed Patients")
+mmse_diag_plot + mmse_notdiag_plot
+```
+The MMSE scores of non-diagnosed patients are usually quite high, meanwhile the MMSE scores of diagnosed patients can vary greatly.
+
+
+We will also investigate the relationship between the target variable and features Age and biological Sex for thoroughness.
 
 ```{r}
 data.frame(
@@ -176,59 +219,54 @@ plot_age_notdiagnosed <- not_diagnosed %>%
 plot_age_diagnosed + plot_age_notdiagnosed
 ```
 As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
-```{r}
-diag_nwbv <- ggplot(data = diagnosed, aes(x=nWBV)) +
-  geom_histogram(binwidth = 0.025, fill = "red", color = "darkred") +
-  xlab("Normalized Whole Brain Volume") +
-  ylab("Frequency") +
-  ggtitle("Diagnosed Patients")
-notdiag_nwbv <- ggplot(data = not_diagnosed, aes(x=nWBV)) +
-  geom_histogram(binwidth = 0.025, fill = "lightblue", color = "blue") +
-  xlab("Normalized Whole Brain Volume") +
-  ylab("Frequency") +
-  ggtitle("Non-Diagnosed Patients")
-diag_nwbv + notdiag_nwbv
-```
-From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
-```{r}
-mmse_diag_plot <- ggplot(data = diagnosed, aes(x=MMSE)) + 
-  geom_bar(fill = "red", color = "darkred") + 
-  xlab("Mini Mental State Examination Score") + 
-  ylab("Frequency") + 
-  ggtitle("Diagnosed Patients")
-mmse_notdiag_plot <- ggplot(data = not_diagnosed, aes(x=MMSE)) + 
-  geom_bar(fill = "lightblue", color = "blue") + 
-  xlab("Mini Mental State Examination Score") + 
-  ylab("Frequency") + 
-  ggtitle("Non-Diagnosed Patients")
-mmse_diag_plot + mmse_notdiag_plot
-```
-The MMSE scores of non-diagnosed patients are usually quite high, meanwhile the MMSE scores of diagnosed patients can vary greatly.
 
-### Analyzing the Correlation between Diagnosis Status and key input variables
-```{r}
-data_processed_numeric <- data_processed %>%
-  select(where(is.numeric)) 
-# data_processed_numeric
 
-corr_matrix <- cor(data_processed_numeric)
+### Analyzing the Correlation between Key Features
+```{r}
 corrplot(corr_matrix)
-
 ```
-Observe that the target variable is most closely correlated with nWBV and MMSE.  Also observe that nWBV and age are closely correlated, which will have to be investigated.
-```{r}
-# TODO - plot nWBV vs CDR
-```
+Observe that nWBV and Age are closely correlated, nWBV and MMSE are also correlated, and MMSE is correlated with both Age and Education.  We will investigate these correlations.
 
 ```{r}
-# TODO - plot MMSE vs CDR
+ggplot(data = data_processed, aes(x = Age, y = nWBV)) + 
+  geom_point(color = "purple") + 
+  geom_smooth(method = "lm", color = "black") +
+  ylab("Whole Brain Volume") + 
+  ggtitle("Normalized Whole Brain Volume vs Age of all Patients")
 ```
+It appears that a higher age is correlated with a lesser total brain volume.
 
 ```{r}
-# TODO - plot nWBV vs Age
+plot_nwbv_mmse <- data_processed %>%
+  mutate(nwbv_binned = cut(nWBV, breaks = seq(0, 1, by = 0.05))) %>%
+  ggplot(aes(x = nwbv_binned, y = MMSE)) + 
+    geom_boxplot(fill = "lavender", color = "purple") +
+    xlab("Whole Brain Volume") + 
+    ylab("Exam Score") +
+    ggtitle("Normalized Whole Brain Volume vs Mini Mental State Exam Score of All Patients")
+plot_nwbv_mmse
 ```
+The distributions per brain volume group have varying standard deviations, but it appears a higher total whole brain volume is moderately correlated with a higher MMSE score.
 
 ```{r}
-# TODO - plot Age vs CDR
-```
+plot_age_mmse <- data_processed %>%
+  mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 10))) %>%
+  ggplot(aes(x = Age_binned, y = MMSE)) + 
+    geom_boxplot(fill = "skyblue", color = "darkblue") + 
+    xlab("Age") + 
+    ylab("Exam Score") + 
+    theme(axis.text.x = element_text(angle = 25, hjust = 1)) +
+    ggtitle("Mini Mental State Exam Score vs Age of all Patients")
 
+plot_age_mmse
+```
+The plot suggests that higher age groups have much more variation than lower age groups in their MMSE scores.  Higher age groups also have slightly lower exam scores on average than lower age groups.
+
+```{r}
+ggplot(data = data_processed, aes(x = factor(Educ), y = MMSE)) + 
+  geom_boxplot(fill = "lightgreen", color = "darkgreen") + 
+  xlab("Education Level") +
+  ylab("Exam Score") + 
+  ggtitle("Mini Mental State Exam Score vs Education Level of all Patients")
+```
+A higher education level is correlated with a higher exam score, with higher education level groups having less variation in their exam scores than groups with a lower education level.
