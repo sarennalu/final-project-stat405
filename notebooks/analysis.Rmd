@@ -11,6 +11,7 @@ library(openxlsx)
 library(dplyr)
 library(ggplot2)
 library(patchwork)
+library(corrplot)
 ```
 
 ### Importing Raw Dataset
@@ -85,7 +86,7 @@ Observe that the `Hand` feature only has the value "R", therefore every observat
 data_processed <- data_cleaned %>%
   mutate(CDR_binary = if_else(CDR == 0, 0, 1),
          sex_male = if_else(`M/F` == "M", 1, 0)) %>%
-  select(-`M/F`, -Hand)
+  select(-`M/F`, -Hand, -CDR) # removing columns to be replaced with their mutated versions
 ```
 Finally, we store the processed data as a .csv file within our repository.
 ```{r}
@@ -203,4 +204,31 @@ mmse_notdiag_plot <- ggplot(data = not_diagnosed, aes(x=MMSE)) +
 mmse_diag_plot + mmse_notdiag_plot
 ```
 The MMSE scores of non-diagnosed patients are usually quite high, meanwhile the MMSE scores of diagnosed patients can vary greatly.
+
+### Analyzing the Correlation between Diagnosis Status and key input variables
+```{r}
+data_processed_numeric <- data_processed %>%
+  select(where(is.numeric)) 
+# data_processed_numeric
+
+corr_matrix <- cor(data_processed_numeric)
+corrplot(corr_matrix)
+
+```
+Observe that the target variable is most closely correlated with nWBV and MMSE.  Also observe that nWBV and age are closely correlated, which will have to be investigated.
+```{r}
+# TODO - plot nWBV vs CDR
+```
+
+```{r}
+# TODO - plot MMSE vs CDR
+```
+
+```{r}
+# TODO - plot nWBV vs Age
+```
+
+```{r}
+# TODO - plot Age vs CDR
+```
 
