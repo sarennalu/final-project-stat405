@@ -93,15 +93,16 @@ Finally, we store the processed data as a .csv file within our repository.
 write.csv(data_processed, file = "../data/processed/oasis_processed.csv")
 ```
 
+
 ### Exploratory Data Analysis
-First, lets check the target variable to see if it is balanced.
+
+First, let's analyze the distribution of the target variable.
 ```{r}
-data.frame(
-  Diagnosis = c("No Diagnosis", "Diagnosis"),
-  Frequency = as.vector(table(data_processed$CDR_binary))
-)
+ggplot(data = data_processed, aes(x = CDR)) +
+  geom_bar(fill = "darkgrey", color = "black") +
+  ylab("Frequency") +
+  ggtitle("Frequency of Clinical Dementia Rating")
 ```
-The target variable is somewhat balanced.  But, we should keep in mind the model will lean towards predicting no diagnosis more often.
 
 Next, lets check the distributions of other important variables.
 ```{r}
@@ -150,7 +151,7 @@ corr_matrix <- cor(data_processed_numeric)
 corrplot(corr_matrix)
 
 ```
-Observe that the target variable is most closely correlated with nWBV and MMSE.  
+Observe that the target variable is most closely correlated with nWBV and MMSE, aside from the binary version of the target variable.
 ```{r}
 diagnosed <- data_processed %>%
   filter(CDR_binary == 1)
@@ -175,19 +176,12 @@ diag_nwbv + notdiag_nwbv
 From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
 
 ```{r}
-mmse_diag_plot <- ggplot(data = diagnosed, aes(x=MMSE)) + 
-  geom_bar(fill = "red", color = "darkred") + 
-  xlab("Mini Mental State Examination Score") + 
-  ylab("Frequency") + 
-  ggtitle("Diagnosed Patients")
-mmse_notdiag_plot <- ggplot(data = not_diagnosed, aes(x=MMSE)) + 
-  geom_bar(fill = "lightblue", color = "blue") + 
-  xlab("Mini Mental State Examination Score") + 
-  ylab("Frequency") + 
-  ggtitle("Non-Diagnosed Patients")
-mmse_diag_plot + mmse_notdiag_plot
+ggplot(data = data_processed, aes(x=factor(CDR), y=MMSE)) +
+  geom_boxplot(fill = "lightgreen", color = "darkgreen") +
+  xlab("CDR") +
+  ggtitle("Mini Mental State Exam Distributions for Clinical Dementia Rating")
 ```
-The MMSE scores of non-diagnosed patients are usually quite high, meanwhile the MMSE scores of diagnosed patients can vary greatly.
+The MMSE scores of non-diagnosed patients are usually quite high, meanwhile the MMSE scores of diagnosed patients decrease as the CDR increases, and the exam scores vary greatly for the patients diagnosed with Alzheimers.  
 
 
 We will also investigate the relationship between the target variable and features Age and biological Sex for thoroughness.
