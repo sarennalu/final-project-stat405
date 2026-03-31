@@ -57,3 +57,6 @@ rsconnect/
 
 # notebook pdfs - maybe delete this later
 notebooks/*.pdf
+
+# data files
+oasis_processed.csv

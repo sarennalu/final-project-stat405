@@ -6,12 +6,261 @@ output: pdf_document
 Sarenna Ulman, Sachit Sharma, Michael Güntert
 
 ```{r}
+# imports 
 library(openxlsx)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+library(corrplot)
 ```
 
+### Importing Raw Dataset
 ```{r}
 # reading in our chosen dataset from the data/raw folder
 data_raw = read.xlsx("../data/raw/oasis_cross-sectional-5708aa0a98d82080.xlsx")
 head(data_raw)
 ```
 
+### Cleaning Dataset
+First, we will check the dataset for NA values.
+```{r}
+cat("Total number of observations in the dataset:", nrow(data_raw) * ncol(data_raw), "\n")
+# print(any(is.na(data_raw)))
+cat("Total number of NA values:", sum(is.na(data_raw)), '\n')
+
+# check which columns contain NA values
+cat("NA values for each feature in the dataset:", '\n')
+print(colSums(is.na(data_raw)))
+```
+
+There are 201 missing values in the target column CDR. It does not make sense to try to impute values in the target column, so we will just remove them.
+```{r}
+data_cleaned <- data_raw %>%
+  filter(!is.na(CDR))
+cat("NA values for each column after removing the NAs from CDR column:", '\n')
+colSums(is.na(data_cleaned))
+```
+Since there are only 19 more missing values in the `SES` column, and we do not anticipate using the `SES` feature in our final analysis, we can just impute those values for now.
+```{r}
+mean_SES <-  mean(data_cleaned$SES, na.rm = TRUE) # impute using mean of SES column
+
+data_cleaned <- data_cleaned %>%
+  mutate(SES = if_else(is.na(SES), mean_SES, SES))
+
+# verify all NA values were removed
+any(is.na(data_cleaned))
+```
+```{r}
+summary(data_cleaned)
+```
+There do not appear to be any outliers in this dataset.  Just to be sure, we will check if any value is 3.5 standard deviations above or below its column mean.
+Since we are going to be using bayesian methods, which are robust to outliers if the model is well specified, we can use a higher threshold for catching outliers than normal.
+```{r}
+outliar_threshold <- 3.5
+outliers <- data_cleaned %>%
+  summarise(across(where(is.numeric), ~sum(abs(scale(.)) > outliar_threshold)))
+
+outliers
+cat("Counts of each value in the CDR column:")
+table(data_cleaned$CDR)
+```
+Since we will be converting CDR to a binary variable where every value above 0 will be converted to 1, we do not need to remove those outliers.
+Since there is only one outlier otherwise, we can safely remove that observation from the dataset.
+```{r}
+# find mmse outlier
+mmse_outlier <- data_cleaned$MMSE[abs(scale(data_cleaned$MMSE)) > outliar_threshold]
+
+data_cleaned <- data_cleaned %>%
+  filter(MMSE > mmse_outlier)
+```
+
+### Processing Data
+First, we will convert the target variable, hand variable, and sex variable into binary variables.
+```{r}
+# verify that the hand and sex features only have the values expected 
+table(data_cleaned$Hand)
+table(data_cleaned$`M/F`)
+```
+Observe that the `Hand` feature only has the value "R", therefore every observation has the same value, rendering this feature's predictive power as nonexistent.  Thus, we can remove this column.
+``` {r}
+data_processed <- data_cleaned %>%
+  mutate(CDR_binary = if_else(CDR == 0, 0, 1),
+         sex_male = if_else(`M/F` == "M", 1, 0)) %>%
+  select(-`M/F`, -Hand, CDR, -Delay, -ID) # removing columns to be replaced with their mutated versions
+```
+Finally, we store the processed data as a .csv file within our repository.
+```{r}
+write.csv(data_processed, file = "../data/processed/oasis_processed.csv")
+```
+
+
+### Exploratory Data Analysis
+
+First, let's analyze the distribution of the target variable.
+```{r}
+ggplot(data = data_processed, aes(x = CDR)) +
+  geom_bar(fill = "darkgrey", color = "black") +
+  ylab("Frequency") +
+  ggtitle("Frequency of Clinical Dementia Rating")
+```
+
+Next, lets check the distributions of other important variables.
+```{r}
+data.frame(
+  Biological_Sex = c("Female", "Male"),
+  Frequency = as.vector(table(data_processed$sex_male))
+)
+```
+The dataset has significantly more females than males.
+```{r}
+data_processed %>%
+  mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 5))) %>%
+  ggplot(aes(x = Age_binned)) + 
+    geom_bar(fill = "grey", color = "black") + 
+    xlab("Age") +
+    ylab("Frequency") + 
+    ggtitle("Frequency of Ages grouped in 5 year bins") +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+```
+The distribution of ages is left-skewed, with most common ages being late 60s to late 70s.
+```{r}
+ggplot(data = data_processed, aes(x=nWBV)) +
+  geom_histogram(binwidth = 0.01, fill = "orange", color = "darkorange") +
+  xlab("Normalized Whole Brain Volume") +
+  ylab("Frequency") +
+  ggtitle("Distribution of Normalized Whole Brain Volume")
+  
+```
+The distribution of normalized whole brain volume within the dataset is unimodal and roughly symmetric, a very rough approximation of the normal distribution.
+```{r}
+ggplot(data = data_processed, aes(x=MMSE)) + 
+  geom_bar(fill = "lightgreen", color = "darkgreen") + 
+  xlab("Mini Mental State Examination Score") + 
+  ylab("Frequency") + 
+  ggtitle("Distribution of Cognitive Ability Scores")
+```
+The distribution of cognitive ability scores is very left-skewed and increasing, with the significant majority of the patients having a score over 26.
+
+### Comparing Diagnosed Patients vs Non Diagnosed
+```{r}
+data_processed_numeric <- data_processed %>%
+  select(where(is.numeric)) 
+# data_processed_numeric
+
+corr_matrix <- cor(data_processed_numeric)
+corrplot(corr_matrix)
+
+```
+Observe that the target variable is most closely correlated with nWBV and MMSE, aside from the binary version of the target variable.
+```{r}
+diagnosed <- data_processed %>%
+  filter(CDR_binary == 1)
+
+not_diagnosed <- data_processed %>%
+  filter(CDR_binary == 0)
+```
+
+```{r}
+diag_nwbv <- ggplot(data = diagnosed, aes(x=nWBV)) +
+  geom_histogram(binwidth = 0.025, fill = "red", color = "darkred") +
+  xlab("Normalized Whole Brain Volume") +
+  ylab("Frequency") +
+  ggtitle("Diagnosed Patients")
+notdiag_nwbv <- ggplot(data = not_diagnosed, aes(x=nWBV)) +
+  geom_histogram(binwidth = 0.025, fill = "lightblue", color = "blue") +
+  xlab("Normalized Whole Brain Volume") +
+  ylab("Frequency") +
+  ggtitle("Non-Diagnosed Patients")
+diag_nwbv + notdiag_nwbv
+```
+From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
+
+```{r}
+ggplot(data = data_processed, aes(x=factor(CDR), y=MMSE)) +
+  geom_boxplot(fill = "lightgreen", color = "darkgreen") +
+  xlab("CDR") +
+  ggtitle("Mini Mental State Exam Distributions for Clinical Dementia Rating")
+```
+The MMSE scores of non-diagnosed patients are usually quite high, meanwhile the MMSE scores of diagnosed patients decrease as the CDR increases, and the exam scores vary greatly for the patients diagnosed with Alzheimers.  
+
+
+We will also investigate the relationship between the target variable and features Age and biological Sex for thoroughness.
+
+```{r}
+data.frame(
+  Biological_Sex = c("Female", "Male"),
+  Diagnosed = as.vector(table(diagnosed$sex_male)),
+  NotDiagnosed = as.vector(table(not_diagnosed$sex_male))
+)
+```
+```{r}
+plot_age_diagnosed <- diagnosed %>%
+  mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 5))) %>%
+  ggplot(aes(x = Age_binned)) + 
+    geom_bar(fill = "red", color = "darkred") + 
+    xlab("Age") +
+    ylab("Frequency") + 
+    ggtitle("Patients Diagnosed with Alzheimers") +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+plot_age_notdiagnosed <- not_diagnosed %>%
+  mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 5))) %>%
+  ggplot(aes(x = Age_binned)) + 
+    geom_bar(fill = "lightblue", color = "blue") + 
+    xlab("Age") +
+    ylab("Frequency") + 
+    ggtitle("Patients Not Diagnosed") +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+plot_age_diagnosed + plot_age_notdiagnosed
+```
+As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
+
+
+### Analyzing the Correlation between Key Predictor Features
+```{r}
+corrplot(corr_matrix)
+```
+Observe that nWBV and Age are closely correlated, nWBV and MMSE are also correlated, and MMSE is correlated with both Age and Education.  We will investigate these correlations.
+
+```{r}
+ggplot(data = data_processed, aes(x = Age, y = nWBV)) + 
+  geom_point(color = "purple") + 
+  geom_smooth(method = "lm", color = "black") +
+  ylab("Whole Brain Volume") + 
+  ggtitle("Normalized Whole Brain Volume vs Age of all Patients")
+```
+It appears that a higher age is correlated with a lesser total brain volume.
+
+```{r}
+plot_nwbv_mmse <- data_processed %>%
+  mutate(nwbv_binned = cut(nWBV, breaks = seq(0, 1, by = 0.05))) %>%
+  ggplot(aes(x = nwbv_binned, y = MMSE)) + 
+    geom_boxplot(fill = "lavender", color = "purple") +
+    xlab("Whole Brain Volume") + 
+    ylab("Exam Score") +
+    ggtitle("Normalized Whole Brain Volume vs Mini Mental State Exam Score of All Patients")
+plot_nwbv_mmse
+```
+The distributions per brain volume group have varying standard deviations, but it appears a higher total whole brain volume is moderately correlated with a higher MMSE score.
+
+```{r}
+plot_age_mmse <- data_processed %>%
+  mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 10))) %>%
+  ggplot(aes(x = Age_binned, y = MMSE)) + 
+    geom_boxplot(fill = "skyblue", color = "darkblue") + 
+    xlab("Age") + 
+    ylab("Exam Score") + 
+    theme(axis.text.x = element_text(angle = 25, hjust = 1)) +
+    ggtitle("Mini Mental State Exam Score vs Age of all Patients")
+
+plot_age_mmse
+```
+The plot suggests that higher age groups have much more variation than lower age groups in their MMSE scores.  Higher age groups also have slightly lower exam scores on average than lower age groups.
+
+```{r}
+ggplot(data = data_processed, aes(x = factor(Educ), y = MMSE)) + 
+  geom_boxplot(fill = "lightgreen", color = "darkgreen") + 
+  xlab("Education Level") +
+  ylab("Exam Score") + 
+  ggtitle("Mini Mental State Exam Score vs Education Level of all Patients")
+```
+A higher education level is correlated with a higher exam score, with higher education level groups having less variation in their exam scores than groups with a lower education level.
