@@ -64,14 +64,14 @@ outliers
 cat("Counts of each value in the CDR column:")
 table(data_cleaned$CDR)
 ```
-Since we will be converting CDR to a binary variable where every value above 0 will be converted to 1, we do not need to remove those outliers.
-Since there is only one outlier otherwise, we can safely remove that observation from the dataset.
+Since there is only 3 outliers, we can safely remove those observations from the dataset.
 ```{r}
 # find mmse outlier
 mmse_outlier <- data_cleaned$MMSE[abs(scale(data_cleaned$MMSE)) > outliar_threshold]
 
 data_cleaned <- data_cleaned %>%
-  filter(MMSE > mmse_outlier)
+  filter(MMSE > mmse_outlier,
+         CDR < 2)
 ```
 
 ### Processing Data
@@ -98,8 +98,9 @@ write.csv(data_processed, file = "../data/processed/oasis_processed.csv")
 
 First, let's analyze the distribution of the target variable.
 ```{r}
-ggplot(data = data_processed, aes(x = CDR)) +
+ggplot(data = data_processed, aes(x = factor(CDR))) +
   geom_bar(fill = "darkgrey", color = "black") +
+  xlab("CDR") +
   ylab("Frequency") +
   ggtitle("Frequency of Clinical Dementia Rating")
 ```
