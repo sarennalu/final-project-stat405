@@ -5,13 +5,19 @@ output: pdf_document
 
 Sarenna Ulman, Sachit Sharma, Michael Güntert
 
-```{r}
+```{r setup, include=FALSE}
 # imports 
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE
+)
 library(openxlsx)
 library(dplyr)
 library(ggplot2)
 library(patchwork)
 library(corrplot)
+library(cmdstanr)
+library(posterior)
 ```
 
 ### Importing Raw Dataset
