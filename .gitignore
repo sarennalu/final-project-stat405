@@ -60,3 +60,6 @@ notebooks/*.pdf
 
 # data files
 oasis_processed.csv
+
+# stan executable files
+models/naive_model
