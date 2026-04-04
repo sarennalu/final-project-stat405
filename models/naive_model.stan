@@ -3,18 +3,18 @@
 // The input data
 data {
   int<lower=1> N; // number of observations
-  array[N] int<lower=0, upper=1> sex_male; // forcing binary structure 
-  vector<lower=0>[N] age; // forcing nonnegative values
-  vector<lower=0>[N] brain_vol;
-  vector<lower=1, upper=5>[N] educ;
-  array[N] int<lower=0, upper=1> CDR_binary; 
+  vector[N] sex_male;  
+  vector age; // forcing nonnegative values
+  vector brain_vol;
+  vector[N] educ;
+  array[N] CDR_binary; 
 }
 
 transformed data {
   vector[N] brain_educ = brain_vol .* educ;
 }
 
-// The parameters accepted by the model.
+// The parameters accepted by the model
 parameters {
   real beta_0; // intercept
   real beta_1; // sex_male
