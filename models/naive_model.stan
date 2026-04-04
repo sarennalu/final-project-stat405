@@ -4,7 +4,7 @@
 data {
   int<lower=1> N; // number of observations
   vector[N] sex_male;  
-  vector age; // forcing nonnegative values
+  vector age;
   vector brain_vol;
   vector[N] educ;
   array[N] CDR_binary; 
