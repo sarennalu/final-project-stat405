@@ -4,10 +4,10 @@
 data {
   int<lower=1> N; // number of observations
   vector[N] sex_male;  
-  vector age;
-  vector brain_vol;
+  vector[N] age;
+  vector[N] brain_vol;
   vector[N] educ;
-  array[N] CDR_binary; 
+  array[N] int<lower=0, upper=1> CDR_binary; 
 }
 
 transformed data {
@@ -49,7 +49,7 @@ model {
   theta = inv_logit(eta);
   
   // Likelihood
-  CDR_binary ~ bernoulli(theta)
+  CDR_binary ~ bernoulli(theta);
   
 }
 
