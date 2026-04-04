@@ -1,7 +1,15 @@
-# imports
+---
+title: "Naive Model"
+output: pdf_document
+---
+
+```{r}
 library(dplyr)
 library(cmdstanr)
+```
 
+First, lets import the data and prep it to be fed into the stan model.
+```{r}
 data_processed = read.csv("../data/processed/oasis_processed.csv")
 
 # selecting relevant columns and enforcing feature constraints
@@ -24,14 +32,21 @@ stan_data <- list(
   educ = data$Educ,
   CDR_binary = data$CDR_binary
 )
+```
 
+Next, lets retrieve the naive model from the stan file and fit it.
+```{r}
 # get stan model
 naive_model <- cmdstan_model("naive_model.stan")
 
 fit <- naive_model$sample(
   seed = 405,
-  data = stan_data
+  data = stan_data,
+  chains = 4,
+  iter_sampling = 2500
 )
 
 fit$print()
 fit$summary()
+```
+
