@@ -28,4 +28,10 @@ stan_data <- list(
 # get stan model
 naive_model <- cmdstan_model("naive_model.stan")
 
+fit <- naive_model$sample(
+  seed = 405,
+  data = stan_data
+)
 
+fit$print()
+fit$summary()
