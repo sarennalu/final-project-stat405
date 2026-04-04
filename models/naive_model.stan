@@ -1,3 +1,5 @@
+// Naive model implementation in stan.
+
 // The input data
 data {
   int<lower=1> N; // number of observations
@@ -6,6 +8,10 @@ data {
   vector<lower=0>[N] brain_vol;
   vector<lower=1, upper=5>[N] educ;
   array[N] int<lower=0, upper=1> CDR_binary; 
+}
+
+transformed data {
+  vector[N] brain_educ = brain_vol .* educ;
 }
 
 // The parameters accepted by the model.
@@ -20,7 +26,9 @@ parameters {
 
 // The model to be estimated.
 model {
-
+  vector[N] theta;
+  vector[N] eta;
+  
 // Priors
   beta_0  ~ normal(0, 3);
   beta_1  ~ normal(0, 3);
@@ -28,5 +36,20 @@ model {
   beta_3  ~ normal(0, 3);
   beta_4  ~ normal(0, 3);
   beta_34 ~ normal(0, 3);
+  
+  // Linear predictor
+  eta = beta_0
+      + beta_1 * sex_male
+      + beta_2 * age
+      + beta_3 * brain_vol
+      + beta_4 * educ
+      + beta_34 * brain_educ;
+
+  // Link Function
+  theta = inv_logit(eta);
+  
+  // Likelihood
+  CDR_binary ~ bernoulli(theta)
+  
 }
 
