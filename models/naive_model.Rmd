@@ -6,6 +6,7 @@ output: pdf_document
 ```{r}
 library(dplyr)
 library(cmdstanr)
+library(ggplot2)
 ```
 
 First, lets import the data and prep it to be fed into the stan model.
@@ -68,3 +69,25 @@ for (i in 1:nrow(data)) {
 }
 ```
 
+```{r}
+calibration <- data.frame(
+  y_true = data$CDR_binary,
+  p = p_mean
+) %>%
+  mutate(bins = ntile(p, 15)) %>%
+  group_by(bins) %>%
+  summarise(
+    mean_pred = mean(p),
+    mean_true = mean(y_true)
+  )
+
+ggplot(calibration, aes(x = mean_pred, y = mean_true)) +
+  geom_point() +
+  geom_line() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  xlab("Mean Predicted Probability") + 
+  ylab("Mean True Value (Diagnosis)") +
+  ggtitle("Calibration Plot")
+```
+As we can see, the plot is not very calibrated.  Therefore, we should try standardizing the numeric predictors to see if we get a better result.
