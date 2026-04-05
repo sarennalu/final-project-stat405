@@ -24,10 +24,26 @@ parameters {
   real beta_34; // interaction of 3 and 4
 }
 
+transformed parameters {
+  vector[N] eta;
+  vector[N] theta;
+    
+  // Linear predictor  
+  eta = beta_0
+      + beta_1 * sex_male
+      + beta_2 * age
+      + beta_3 * brain_vol
+      + beta_4 * educ
+      + beta_34 * brain_educ;
+    
+  // Link Function
+  theta = inv_logit(eta);
+  
+}
+
 // The model to be estimated.
 model {
-  vector[N] theta;
-  vector[N] eta;
+  
   
 // Priors
   beta_0  ~ normal(0, 3);
@@ -37,19 +53,20 @@ model {
   beta_4  ~ normal(0, 3);
   beta_34 ~ normal(0, 3);
   
-  // Linear predictor
-  eta = beta_0
-      + beta_1 * sex_male
-      + beta_2 * age
-      + beta_3 * brain_vol
-      + beta_4 * educ
-      + beta_34 * brain_educ;
-
-  // Link Function
-  theta = inv_logit(eta);
-  
   // Likelihood
   CDR_binary ~ bernoulli(theta);
+  
+}
+
+generated quantities {
+  
+   vector[N] p_pred;
+   array[N] int y_pred;
+   
+   for (i in 1:N) {
+    p_pred[i] = theta[i];
+    y_pred[i] = bernoulli_rng(p_pred[i]);
+  }
   
 }
 
