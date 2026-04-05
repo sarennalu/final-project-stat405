@@ -1,0 +1,18 @@
+---
+title: "complex_model"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(cmdstanr)
+```
+
+```{r}
+
+data_processed = read_csv("../data/processed/oasis_processed.csv")
+head(data_processed)
+```
+
+
+
