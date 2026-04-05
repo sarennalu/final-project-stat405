@@ -53,20 +53,11 @@ fit$summary()
 ```
 Let's perform a goodness of fit check on the naive model.
 ```{r}
-ci_limits = matrix(0, nrow = nrow(data), ncol = 2)
-
 # extract probabilities from fitted model object
 draws_df <- fit$draws(format = "df")
 p_cols <- grep("^p_pred\\[", names(draws_df), value = TRUE)
 p_matrix <- as.matrix(draws_df[, p_cols])
 p_mean <- colMeans(p_matrix)
-
-# calculate credible intervals
-for (i in 1:nrow(data)) {
-  cred_int <- quantile(p_matrix[, i], c(0.1, 0.9))
-  ci_limits[i, 1] <- cred_int[1]
-  ci_limits[i, 2] <- cred_int[2]
-}
 ```
 
 ```{r}
