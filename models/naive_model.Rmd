@@ -82,3 +82,64 @@ ggplot(calibration, aes(x = mean_pred, y = mean_true)) +
   ggtitle("Calibration Plot")
 ```
 As we can see, the plot is not very calibrated.  Therefore, we should try standardizing the numeric predictors to see if we get a better result.
+
+```{r}
+# selecting relevant columns and enforcing feature constraints
+data <- data_processed %>%
+  select(sex_male, Age, nWBV, Educ, CDR_binary) %>%
+  filter(Educ > 1,
+         Educ < 5,
+         Age > 0,
+         nWBV > 0,
+         (sex_male == 1 | sex_male == 0),
+         (CDR_binary == 1 | CDR_binary == 0)
+         ) %>%
+  mutate(Age_standardized = as.numeric(scale(Age)),
+         nWBV_standardized = as.numeric(scale(nWBV)),
+         Educ_standardized = as.numeric(scale(Educ)))
+
+# creating the data object to be passed into stan
+stan_data <- list(
+  N = nrow(data),
+  sex_male = data$sex_male,
+  age = data$Age_standardized,
+  brain_vol = data$nWBV_standardized,
+  educ = data$Educ_standardized,
+  CDR_binary = data$CDR_binary
+)
+
+fit <- naive_model$sample(
+  seed = 405,
+  data = stan_data,
+  chains = 4,
+  iter_sampling = 2500,
+  show_messages = FALSE
+)
+
+# extract probabilities from fitted model object
+draws_df <- fit$draws(format = "df")
+p_cols <- grep("^p_pred\\[", names(draws_df), value = TRUE)
+p_matrix <- as.matrix(draws_df[, p_cols])
+p_mean <- colMeans(p_matrix)
+
+calibration <- data.frame(
+  y_true = data$CDR_binary,
+  p = p_mean
+) %>%
+  mutate(bins = ntile(p, 15)) %>%
+  group_by(bins) %>%
+  summarise(
+    mean_pred = mean(p),
+    mean_true = mean(y_true)
+  )
+
+ggplot(calibration, aes(x = mean_pred, y = mean_true)) +
+  geom_point() +
+  geom_line() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  xlab("Mean Predicted Probability") + 
+  ylab("Mean True Value (Diagnosis)") +
+  ggtitle("Calibration Plot")
+```
+That did not help much.  Therefore, we should try something else.
