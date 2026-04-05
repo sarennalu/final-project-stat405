@@ -5,14 +5,51 @@ output: html_document
 
 ```{r}
 library(dplyr)
-library(cmdstanr)
+suppressPackageStartupMessages(library(cmdstanr))
 ```
 
 ```{r}
-
 data_processed = read_csv("../data/processed/oasis_processed.csv")
 head(data_processed)
 ```
+```{r}
+N = nrow(data_processed)
+y = data_processed$CDR
+age = data_processed$Age
+sex = data_processed$sex_male
+brain_volume =data_processed$nWBV
+educ = data_processed$Educ
+brain_educ = data_processed$Educ*data_processed$nWBV
 
+## Standardising
+age_z = as.numeric(scale(age))
+brain_volume_z = as.numeric(scale(brain_volume))
+educ_z = as.numeric(scale(educ))
+brain_educ_z = brain_volume_z*educ_z
+```
+
+
+
+```{r}
+
+mod <- cmdstan_model("complex_model.stan")
+fit = mod$sample(
+  seed = 1,
+  chains = 1,
+  refresh = 1000,
+  data = list( 
+          y = y, 
+          N = nrow(data_processed),
+          sex = sex,
+          age = age_z,
+          brain_volume = brain_volume_z,
+          educ = educ_z,
+          brain_educ = brain_educ_z
+        ), 
+  iter_sampling = 2000
+)
+
+
+```
 
 
