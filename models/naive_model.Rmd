@@ -51,10 +51,10 @@ fit <- naive_model$sample(
 ```
 
 ```{r}
-fit$print()
-
 fit$summary()
 ```
+`rhat` $\approx 1$ for all parameters, indicating that the chains have all converged to the same distribution.  The bulk and tail ESS are high, indicating efficient sampling.  
+
 #### Calibration Plot
 
 Let's perform a goodness of fit check on the naive model.
