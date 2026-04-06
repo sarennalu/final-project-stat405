@@ -3,6 +3,14 @@ title: "Naive Model"
 output: pdf_document
 ---
 
+```{r setup, include=FALSE}
+# imports 
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE
+)
+```
+
 ```{r}
 library(dplyr)
 library(cmdstanr)
