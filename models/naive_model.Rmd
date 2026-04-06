@@ -48,11 +48,15 @@ fit <- naive_model$sample(
   iter_sampling = 2500,
   show_messages = FALSE
 )
+```
 
+```{r}
 fit$print()
+
 fit$summary()
 ```
 #### Calibration Plot
+
 Let's perform a goodness of fit check on the naive model.
 ```{r}
 # extract probabilities from fitted model object
@@ -147,6 +151,7 @@ ggplot(calibration, aes(x = mean_pred, y = mean_true)) +
 That did not help much.  Therefore, we should try other fixes in the complex model implementation if it's necessary.
 
 #### Rank Plots, Trace Plots, Mixing Plots
+
 First, let's create a rank plot to inspect the rank distribution and mixing behavior.
 ```{r}
 mcmc_rank_hist(fit$draws("beta_0")) +
