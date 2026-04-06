@@ -4,13 +4,21 @@ output: html_document
 ---
 
 ```{r}
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(bayesplot))
 suppressPackageStartupMessages(library(cmdstanr))
+
 ```
 
+We first load the processed data and select the necessary columns. 
 ```{r}
-data_processed = read_csv("../data/processed/oasis_processed.csv")
+data_processed = read.csv("../data/processed/oasis_processed.csv")
+
+data_processed = data_processed |> select(Age, Educ, nWBV,CDR, sex_male )
 head(data_processed)
+
+
 ```
 ```{r}
 N = nrow(data_processed)
@@ -28,14 +36,14 @@ educ_z = as.numeric(scale(educ))
 brain_educ_z = brain_volume_z*educ_z
 ```
 
-
+Now we compute the posterior using stan. 
 
 ```{r}
 
 mod <- cmdstan_model("complex_model.stan")
 fit = mod$sample(
-  seed = 1,
-  chains = 1,
+  seed =405,
+  chains = 4,
   refresh = 1000,
   data = list( 
           y = y, 
@@ -46,10 +54,56 @@ fit = mod$sample(
           educ = educ_z,
           brain_educ = brain_educ_z
         ), 
-  iter_sampling = 2000
+  iter_sampling = 4000
 )
 
 
 ```
 
+```{r}
+fit
+```
+Now, we assess the behaviour of our chains using trace plots. 
+
+```{r}
+
+theme_set(theme_minimal())
+
+mcmc_trace(fit$draws("beta1"))  + xlab("Iteration Number")
+mcmc_trace(fit$draws("k0"))     + xlab("Iteration Number")
+mcmc_trace(fit$draws("delta"))  + xlab("Iteration Number")
+mcmc_trace(fit$draws("beta34")) + xlab("Iteration Number")
+```
+
+We create a rank plot to inspect the rank distribution and mixing behavior.
+
+```{r}
+
+mcmc_rank_hist(fit$draws("beta1")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+mcmc_rank_hist(fit$draws("beta2")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+mcmc_rank_hist(fit$draws("beta34")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+mcmc_rank_hist(fit$draws("k0")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+mcmc_rank_hist(fit$draws("delta")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+  
+```
 
