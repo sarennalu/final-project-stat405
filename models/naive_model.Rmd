@@ -232,6 +232,26 @@ mcmc_trace(fit$draws("beta_34")) + theme_minimal() +
   ylab("Value of Beta 34") +
   ggtitle("Trace Plot for Interaction Prior")
 ```
-
-
 All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. 
+
+Next, we will make autocorrelation plots.
+```{r}
+mcmc_acf(fit$draws("beta_0")) +
+  ggtitle("Autocorrelation Plot for Prior Beta 0")
+```
+
+```{r}
+mcmc_acf(fit$draws("beta_3")) +
+  ggtitle("Autocorrelation Plot for Prior Beta 3")
+```
+
+```{r}
+mcmc_acf(fit$draws("beta_4")) +
+  ggtitle("Autocorrelation Plot for Prior Beta 4")
+```
+
+```{r}
+mcmc_acf(fit$draws("beta_34")) +
+  ggtitle("Autocorrelation Plot for Interaction Prior")
+```
+All priors show fast decay to 0 for all chains, demonstrating efficient sampling.
