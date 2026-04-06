@@ -44,7 +44,6 @@ transformed parameters {
 // The model to be estimated.
 model {
   
-  
 // Priors
   beta_0  ~ normal(0, 3);
   beta_1  ~ normal(0, 3);

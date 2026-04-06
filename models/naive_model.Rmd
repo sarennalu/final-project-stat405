@@ -7,6 +7,7 @@ output: pdf_document
 library(dplyr)
 library(cmdstanr)
 library(ggplot2)
+library(bayesplot)
 ```
 
 First, lets import the data and prep it to be fed into the stan model.
@@ -51,6 +52,7 @@ fit <- naive_model$sample(
 fit$print()
 fit$summary()
 ```
+#### Calibration Plot
 Let's perform a goodness of fit check on the naive model.
 ```{r}
 # extract probabilities from fitted model object
@@ -142,4 +144,63 @@ ggplot(calibration, aes(x = mean_pred, y = mean_true)) +
   ylab("Mean True Value (Diagnosis)") +
   ggtitle("Calibration Plot")
 ```
-That did not help much.  Therefore, we should try something else.
+That did not help much.  Therefore, we should try other fixes in the complex model implementation if it's necessary.
+
+#### Rank Plots, Trace Plots, Mixing Plots
+First, let's create a rank plot to inspect the rank distribution and mixing behavior.
+```{r}
+mcmc_rank_hist(fit$draws("beta_0")) +
+  ylab("no of MCMC samples with these ranks") +
+  ggtitle("MCMC Ranks Histogram for Prior Beta 0") +
+  theme_minimal() +
+  scale_x_continuous(
+    breaks = seq(0, 10000, by = 2500)
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+    axis.ticks.x = element_line()
+  )
+```
+```{r}
+mcmc_rank_hist(fit$draws("beta_3")) +
+  ylab("no of MCMC samples with these ranks") +
+  ggtitle("MCMC Ranks Histogram for Prior Beta 3") +
+  theme_minimal() +
+  scale_x_continuous(
+    breaks = seq(0, 10000, by = 2500)
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+    axis.ticks.x = element_line()
+  )
+```
+
+```{r}
+mcmc_rank_hist(fit$draws("beta_4")) +
+  ylab("no of MCMC samples with these ranks") +
+  ggtitle("MCMC Ranks Histogram for Prior Beta 4") +
+  theme_minimal() +
+  scale_x_continuous(
+    breaks = seq(0, 10000, by = 2500)
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+    axis.ticks.x = element_line()
+  )
+```
+
+```{r}
+mcmc_rank_hist(fit$draws("beta_34")) +
+  ylab("no of MCMC samples with these ranks") +
+  ggtitle("MCMC Ranks Histogram for Interaction Term Prior") +
+  theme_minimal() +
+  scale_x_continuous(
+    breaks = seq(0, 10000, by = 2500)
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+    axis.ticks.x = element_line()
+  )
+```
+
+All of the histograms look roughly flat for all 4 chains.  This is an indication of good mixing.
