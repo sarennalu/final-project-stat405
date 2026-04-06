@@ -203,4 +203,35 @@ mcmc_rank_hist(fit$draws("beta_34")) +
   )
 ```
 
-All of the histograms look roughly flat for all 4 chains.  This is an indication of good mixing.
+All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
+
+Next, we will create some trace plots.
+```{r}
+mcmc_trace(fit$draws("beta_0")) + theme_minimal() +
+  xlab("Iteration Number") +
+  ylab("Value of Beta 0") +
+  ggtitle("Trace Plot for Beta 0 Prior")
+```
+```{r}
+mcmc_trace(fit$draws("beta_3")) + theme_minimal() +
+  xlab("Iteration Number") +
+  ylab("Value of Beta 3") +
+  ggtitle("Trace Plot for Beta 3 Prior")
+```
+
+```{r}
+mcmc_trace(fit$draws("beta_4")) + theme_minimal() +
+  xlab("Iteration Number") +
+  ylab("Value of Beta 4") +
+  ggtitle("Trace Plot for Beta 4 Prior")
+```
+
+```{r}
+mcmc_trace(fit$draws("beta_34")) + theme_minimal() +
+  xlab("Iteration Number") +
+  ylab("Value of Beta 34") +
+  ggtitle("Trace Plot for Interaction Prior")
+```
+
+
+All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. 
