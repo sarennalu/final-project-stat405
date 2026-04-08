@@ -157,6 +157,7 @@ We create function so we can efficiently make the calibration plots.
 calibration_plot = function(cal_df, title) {
   ggplot(cal_df, aes(x = mean_predicted, y = mean_observed)) + 
   geom_point() + 
+  geom_line() +
   labs(x = "Mean of the predicted value", y = "Proportion of Observed") +
   geom_abline(intercept = 0, slope = 1, 
                 linetype = "dashed", color = "red") +
@@ -166,7 +167,7 @@ calibration_plot = function(cal_df, title) {
 ```
 
 ```{r}
-calibration_plot(c0, "Class 0")
+calibration_plot(c0, "Class 0") 
 
 calibration_plot(c1, "Class 1")
 
