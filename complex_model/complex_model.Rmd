@@ -55,7 +55,8 @@ fit = mod$sample(
           educ = educ_z,
           brain_educ = brain_educ_z
         ), 
-  iter_sampling = 4000
+  iter_sampling = 4000,
+  show_messages = FALSE
 )
 
 
