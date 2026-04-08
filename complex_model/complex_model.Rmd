@@ -8,6 +8,7 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(bayesplot))
 suppressPackageStartupMessages(library(cmdstanr))
+suppressPackageStartupMessages(library(posterior))
 
 ```
 
@@ -107,3 +108,26 @@ mcmc_rank_hist(fit$draws("delta")) +
   
 ```
 
+```{r}
+
+colMeans(as_draws_matrix(fit$draws("p0")))
+colMeans(as_draws_matrix(fit$draws("p05")))
+colMeans(as_draws_matrix(fit$draws("p1")))
+
+```
+
+```{r}
+calibration_check = function(pred_prob, observed_outcome, bins) {
+  df = data.frame(predicted = pred_prob, 
+                  observed = observed_outcome)
+  
+  df$bin = cut(df$predicted, breaks = bins)
+  
+  summay = df |> group_by(bin)
+           summarise(mean_predictd = mean(predicted),
+                     mean_observed = mean(observed))
+           
+
+}
+
+```

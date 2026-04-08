@@ -51,4 +51,16 @@ model {
   } 
 }
 
+generated quantities {
+  vector[N] p0;
+  vector[N] p05;
+  vector[N] p1;
+  
+  for (i in 1:N) {
+    p0[i] = normal_cdf(k0| mu[i], sigma);
+    p05[i] = normal_cdf(k1| mu[i], sigma) - normal_cdf(k0| mu[i], sigma);
+    p1[i] =  1- normal_cdf(k1|mu[i], sigma);
+  }
+}
+
 
