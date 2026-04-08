@@ -60,3 +60,6 @@ notebooks/*.pdf
 
 # data files
 oasis_processed.csv
+
+# stan executables
+complex_model/complex_model
