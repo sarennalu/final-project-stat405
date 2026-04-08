@@ -110,12 +110,14 @@ mcmc_rank_hist(fit$draws("delta")) +
 
 ```{r}
 
-colMeans(as_draws_matrix(fit$draws("p0")))
-colMeans(as_draws_matrix(fit$draws("p05")))
-colMeans(as_draws_matrix(fit$draws("p1")))
+pred_0 = colMeans(as_draws_matrix(fit$draws("p0")))
+pred_05= colMeans(as_draws_matrix(fit$draws("p05")))
+pred_1 =  colMeans(as_draws_matrix(fit$draws("p1")))
+
+
 
 ```
-
+We create function to get the data for the calibration plot. 
 ```{r}
 calibration_check = function(pred_prob, observed_outcome, bins) {
   df = data.frame(predicted = pred_prob, 
@@ -123,11 +125,54 @@ calibration_check = function(pred_prob, observed_outcome, bins) {
   
   df$bin = cut(df$predicted, breaks = bins)
   
-  summay = df |> group_by(bin)
-           summarise(mean_predictd = mean(predicted),
-                     mean_observed = mean(observed))
-           
-
+  summary = df |> group_by(bin) |>
+           summarise(mean_predicted = mean(predicted),
+                     mean_observed = mean(observed), 
+                     n = n())
+        
+  return(summary)
+    
 }
+
+```
+
+Now use the function to generate the calibtration plot data and then plot it
+```{r}
+observed_0 = as.numeric(data_processed$CDR == 0)
+observed_1 = as.numeric(data_processed$CDR == 1)
+observed_05= as.numeric(data_processed$CDR == 0.5)
+
+c0 = calibration_check(pred_0, observed_0, bins = 8)
+c1 = calibration_check(pred_1, observed_1, bins = 8)
+c05 = calibration_check(pred_05, observed_05, bins = 8)
+
+c0 
+c1
+c05
+```
+We create function so we can efficiently make the calibration plots. 
+
+```{r}
+calibration_plot = function(cal_df, title) {
+  ggplot(cal_df, aes(x = mean_predicted, y = mean_observed)) + 
+  geom_point() + 
+  labs(x = "Mean of the predicted value", y = "Proportion of Observed") +
+  geom_abline(intercept = 0, slope = 1, 
+                linetype = "dashed", color = "red") +
+  ggtitle(title) 
+}
+
+```
+
+```{r}
+calibration_plot(c0, "Class 0")
+
+calibration_plot(c1, "Class 1")
+
+calibration_plot(c05, "Class 05")
+
+```
+
+
 
 ```
