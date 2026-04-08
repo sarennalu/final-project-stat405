@@ -61,5 +61,6 @@ rsconnect/
 # data files
 oasis_processed.csv
 
-# stan executable files
+# stan executables
 models/naive_model
+complex_model/complex_model
