@@ -16,10 +16,8 @@ We first load the processed data and select the necessary columns.
 ```{r}
 data_processed = read.csv("../data/processed/oasis_processed.csv")
 
-data_processed = data_processed |> select(Age, Educ, nWBV,CDR, sex_male )
+data_processed = data_processed |> select(Age, Educ, nWBV,CDR, sex_male)
 head(data_processed)
-
-
 ```
 ```{r}
 N = nrow(data_processed)
@@ -40,7 +38,6 @@ brain_educ_z = brain_volume_z*educ_z
 Now we compute the posterior using stan. 
 
 ```{r}
-
 mod <- cmdstan_model("complex_model.stan")
 fit = mod$sample(
   seed =405,
@@ -59,7 +56,6 @@ fit = mod$sample(
   show_messages = FALSE
 )
 
-
 ```
 
 ```{r}
@@ -68,7 +64,6 @@ fit
 Now, we assess the behaviour of our chains using trace plots. 
 
 ```{r}
-
 theme_set(theme_minimal())
 
 mcmc_trace(fit$draws("beta1"))  + xlab("Iteration Number")
@@ -114,8 +109,6 @@ mcmc_rank_hist(fit$draws("delta")) +
 pred_0 = colMeans(as_draws_matrix(fit$draws("p0")))
 pred_05= colMeans(as_draws_matrix(fit$draws("p05")))
 pred_1 =  colMeans(as_draws_matrix(fit$draws("p1")))
-
-
 
 ```
 We create function to get the data for the calibration plot. 
