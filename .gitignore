@@ -55,11 +55,12 @@ rsconnect/
 # System files
 .DS_Store
 
-# notebook pdfs - maybe delete this later
-notebooks/*.pdf
+# pdfs - maybe delete this later
+*.pdf
 
 # data files
 oasis_processed.csv
 
 # stan executables
+models/naive_model
 complex_model/complex_model
