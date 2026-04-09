@@ -64,3 +64,6 @@ oasis_processed.csv
 # stan executables
 models/naive_model
 complex_model/complex_model
+
+models/naive_model.exe
+complex_model/complex_model.exe
