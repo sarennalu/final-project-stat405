@@ -1,0 +1,173 @@
+---
+title: "complex_model"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(bayesplot))
+suppressPackageStartupMessages(library(cmdstanr))
+suppressPackageStartupMessages(library(posterior))
+
+```
+
+We first load the processed data and select the necessary columns. 
+```{r}
+data_processed = read.csv("../data/processed/oasis_processed.csv")
+
+data_processed = data_processed |> select(Age, Educ, nWBV,CDR, sex_male)
+head(data_processed)
+```
+```{r}
+N = nrow(data_processed)
+y = data_processed$CDR
+age = data_processed$Age
+sex = data_processed$sex_male
+brain_volume =data_processed$nWBV
+educ = data_processed$Educ
+brain_educ = data_processed$Educ*data_processed$nWBV
+
+## Standardising
+age_z = as.numeric(scale(age))
+brain_volume_z = as.numeric(scale(brain_volume))
+educ_z = as.numeric(scale(educ))
+brain_educ_z = brain_volume_z*educ_z
+```
+
+Now we compute the posterior using stan. 
+
+```{r}
+mod <- cmdstan_model("complex_model.stan")
+fit = mod$sample(
+  seed =405,
+  chains = 4,
+  refresh = 1000,
+  data = list( 
+          y = y, 
+          N = nrow(data_processed),
+          sex = sex,
+          age = age_z,
+          brain_volume = brain_volume_z,
+          educ = educ_z,
+          brain_educ = brain_educ_z
+        ), 
+  iter_sampling = 4000,
+  show_messages = FALSE
+)
+
+```
+
+```{r}
+fit
+```
+Now, we assess the behaviour of our chains using trace plots. 
+
+```{r}
+theme_set(theme_minimal())
+
+mcmc_trace(fit$draws("beta1"))  + xlab("Iteration Number")
+mcmc_trace(fit$draws("k0"))     + xlab("Iteration Number")
+mcmc_trace(fit$draws("delta"))  + xlab("Iteration Number")
+mcmc_trace(fit$draws("beta34")) + xlab("Iteration Number")
+```
+
+We create a rank plot to inspect the rank distribution and mixing behavior.
+
+```{r}
+
+mcmc_rank_hist(fit$draws("beta1")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+mcmc_rank_hist(fit$draws("beta2")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+mcmc_rank_hist(fit$draws("beta34")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+mcmc_rank_hist(fit$draws("k0")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+mcmc_rank_hist(fit$draws("delta")) +
+  ylab("no of MCMC samples with these ranks") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+  
+```
+
+```{r}
+
+pred_0 = colMeans(as_draws_matrix(fit$draws("p0")))
+pred_05= colMeans(as_draws_matrix(fit$draws("p05")))
+pred_1 =  colMeans(as_draws_matrix(fit$draws("p1")))
+
+```
+We create function to get the data for the calibration plot. 
+```{r}
+calibration_check = function(pred_prob, observed_outcome, bins) {
+  df = data.frame(predicted = pred_prob, 
+                  observed = observed_outcome)
+  
+  df$bin = cut(df$predicted, breaks = bins)
+  
+  summary = df |> group_by(bin) |>
+           summarise(mean_predicted = mean(predicted),
+                     mean_observed = mean(observed), 
+                     n = n())
+        
+  return(summary)
+    
+}
+
+```
+
+Now use the function to generate the calibtration plot data and then plot it
+```{r}
+observed_0 = as.numeric(data_processed$CDR == 0)
+observed_1 = as.numeric(data_processed$CDR == 1)
+observed_05= as.numeric(data_processed$CDR == 0.5)
+
+c0 = calibration_check(pred_0, observed_0, bins = 8)
+c1 = calibration_check(pred_1, observed_1, bins = 8)
+c05 = calibration_check(pred_05, observed_05, bins = 8)
+
+c0 
+c1
+c05
+```
+We create function so we can efficiently make the calibration plots. 
+
+```{r}
+calibration_plot = function(cal_df, title) {
+  ggplot(cal_df, aes(x = mean_predicted, y = mean_observed)) + 
+  geom_point() + 
+  geom_line() +
+  labs(x = "Mean of the predicted value", y = "Proportion of Observed") +
+  geom_abline(intercept = 0, slope = 1, 
+                linetype = "dashed", color = "red") +
+  ggtitle(title) 
+}
+
+```
+
+```{r}
+calibration_plot(c0, "Class 0") 
+
+calibration_plot(c1, "Class 1")
+
+calibration_plot(c05, "Class 05")
+
+```
+
+
+
+```
