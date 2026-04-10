@@ -1,0 +1,298 @@
+---
+title: "Complex Model Prior Sensitivity"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(bayesplot))
+suppressPackageStartupMessages(library(cmdstanr))
+suppressPackageStartupMessages(library(posterior))
+suppressPackageStartupMessages(library(purrr))
+suppressPackageStartupMessages(library(tidyr))
+
+theme_set(theme_minimal())
+color_scheme_set("mix-blue-red")
+```
+
+## Data preparation
+
+```{r}
+data_processed <- read.csv("../data/processed/oasis_processed.csv")
+
+data <- data_processed %>%
+  select(Age, Educ, nWBV, CDR, sex_male) %>%
+  filter(
+    !is.na(Age),
+    !is.na(Educ),
+    !is.na(nWBV),
+    !is.na(CDR),
+    !is.na(sex_male),
+    Age > 0,
+    nWBV > 0,
+    sex_male %in% c(0, 1),
+    CDR %in% c(0, 0.5, 1)
+  ) %>%
+  mutate(
+    age_z = as.numeric(scale(Age)),
+    brain_volume_z = as.numeric(scale(nWBV)),
+    educ_z = as.numeric(scale(Educ)),
+    brain_educ_z = brain_volume_z * educ_z,
+    y_cat = case_when(
+      CDR == 0   ~ 1L,
+      CDR == 0.5 ~ 2L,
+      CDR == 1   ~ 3L
+    )
+  )
+
+stan_data_base <- list(
+  N = nrow(data),
+  y_cat = data$y_cat,
+  sex = as.numeric(data$sex_male),
+  age = data$age_z,
+  brain_volume = data$brain_volume_z,
+  educ = data$educ_z,
+  brain_educ = data$brain_educ_z
+)
+```
+
+## Stan model for prior sensitivity
+
+The original complex Stan model fixes the priors. Here we write a temporary Stan file so the prior settings can be varied from R.
+
+## Fit the model under several priors
+
+```{r}
+mod <- cmdstan_model("complex_model_sensitivity.stan")
+
+prior_grid <- tibble(
+  prior = c("beta N(0, 0.5)", "beta N(0, 1)", "beta N(0, 2)"),
+  beta_sd = c(0.5, 1.0, 2.0),
+  c1_sd = c(1.0, 1.0, 1.0),
+  delta_rate = c(0.3, 0.3, 0.3)
+)
+
+fit_one_complex <- function(prior, beta_sd, c1_sd, delta_rate) {
+  fit <- mod$sample(
+    seed = 405,
+    chains = 4,
+    iter_sampling = 4000,
+    refresh = 1000,
+    show_messages = FALSE,
+    data = c(
+      stan_data_base,
+      list(
+        beta_sd = beta_sd,
+        c1_sd = c1_sd,
+        delta_rate = delta_rate
+      )
+    )
+  )
+
+  list(prior = prior, fit = fit)
+}
+
+fit_list <- pmap(prior_grid, fit_one_complex)
+names(fit_list) <- prior_grid$prior
+```
+
+## Posterior summaries
+
+```{r}
+params <- c("beta1", "beta2", "beta3", "beta4", "beta34", "c1", "delta", "c2")
+
+extract_summary <- function(fit_obj, prior_name) {
+  draws <- as_draws_df(fit_obj$draws(params))
+
+  tibble(
+    parameter = params,
+    mean = sapply(params, function(p) mean(draws[[p]])),
+    median = sapply(params, function(p) median(draws[[p]])),
+    sd = sapply(params, function(p) sd(draws[[p]])),
+    q2.5 = sapply(params, function(p) quantile(draws[[p]], 0.025)),
+    q97.5 = sapply(params, function(p) quantile(draws[[p]], 0.975)),
+    prob_negative = sapply(params, function(p) mean(draws[[p]] < 0)),
+    prior = prior_name
+  )
+}
+
+summary_table <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  ~ extract_summary(.x$fit, .y)
+)
+
+summary_table %>%
+  arrange(parameter, prior)
+```
+
+```{r}
+summary_table %>%
+  filter(parameter %in% c("beta3", "beta34", "c1", "delta", "c2")) %>%
+  arrange(parameter, prior)
+```
+
+## Diagnostics
+
+```{r}
+diagnostic_table <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    x$fit$summary(params) %>%
+      as_tibble() %>%
+      mutate(prior = nm) %>%
+      select(prior, variable, mean, sd, q5, q95, rhat, ess_bulk, ess_tail)
+  }
+)
+
+diagnostic_table
+```
+
+## Posterior density plots
+
+```{r}
+posterior_beta3 <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    draws <- as_draws_df(x$fit$draws("beta3"))
+    tibble(value = draws$beta3, prior = nm)
+  }
+)
+
+ggplot(posterior_beta3, aes(x = value, color = prior)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior density of brain-volume effect across priors",
+    x = expression(beta[3]),
+    y = "Density",
+    color = "Prior"
+  )
+```
+
+```{r}
+posterior_beta34 <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    draws <- as_draws_df(x$fit$draws("beta34"))
+    tibble(value = draws$beta34, prior = nm)
+  }
+)
+
+ggplot(posterior_beta34, aes(x = value, color = prior)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior density of interaction effect across priors",
+    x = "beta34",
+    y = "Density",
+    color = "Prior"
+  )
+```
+
+## Credible interval plots
+
+```{r}
+interval_plot_data <- summary_table %>%
+  filter(parameter %in% c("beta3", "beta34", "c1", "delta", "c2"))
+
+ggplot(
+  interval_plot_data,
+  aes(x = prior, y = median, ymin = q2.5, ymax = q97.5)
+) +
+  geom_pointrange() +
+  facet_wrap(~ parameter, scales = "free_y") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Posterior medians and 95% credible intervals across priors",
+    x = "Prior",
+    y = "Posterior estimate"
+  )
+```
+
+## Trace plots and rank histograms
+
+```{r}
+for (nm in names(fit_list)) {
+  print(
+    mcmc_trace(fit_list[[nm]]$fit$draws(c("beta3", "beta34", "c1", "delta", "c2"))) +
+      ggtitle(paste("Trace plots:", nm)) +
+      xlab("Iteration Number")
+  )
+}
+```
+
+```{r}
+for (nm in names(fit_list)) {
+  print(
+    mcmc_rank_hist(fit_list[[nm]]$fit$draws(c("beta3", "beta34", "c1", "delta", "c2"))) +
+      ggtitle(paste("Rank histograms:", nm))
+  )
+}
+```
+
+## Calibration plots by class and prior
+
+```{r}
+get_pred_means <- function(fit_obj) {
+  list(
+    pred_0 = colMeans(as_draws_matrix(fit_obj$draws("p1"))),
+    pred_05 = colMeans(as_draws_matrix(fit_obj$draws("p2"))),
+    pred_1 = colMeans(as_draws_matrix(fit_obj$draws("p3")))
+  )
+}
+
+calibration_check <- function(pred_prob, observed_outcome, bins = 8) {
+  df <- tibble(
+    predicted = pred_prob,
+    observed = observed_outcome
+  ) %>%
+    mutate(bin = ntile(predicted, bins))
+
+  df %>%
+    group_by(bin) %>%
+    summarise(
+      mean_predicted = mean(predicted),
+      mean_observed = mean(observed),
+      n = n(),
+      .groups = "drop"
+    )
+}
+
+# IMPORTANT: use the same filtered data used for modeling
+observed_0 <- as.numeric(data$y_cat == 1L)
+observed_05 <- as.numeric(data$y_cat == 2L)
+observed_1 <- as.numeric(data$y_cat == 3L)
+
+calibration_all <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    preds <- get_pred_means(x$fit)
+
+    bind_rows(
+      calibration_check(preds$pred_0, observed_0, bins = 8) %>% mutate(class = "0"),
+      calibration_check(preds$pred_05, observed_05, bins = 8) %>% mutate(class = "0.5"),
+      calibration_check(preds$pred_1, observed_1, bins = 8) %>% mutate(class = "1")
+    ) %>%
+      mutate(prior = nm)
+  }
+)
+
+ggplot(calibration_all, aes(x = mean_predicted, y = mean_observed, group = 1)) +
+  geom_point() +
+  geom_line() +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+  facet_grid(class ~ prior) +
+  labs(
+    title = "Calibration plots across priors and classes",
+    x = "Mean predicted probability",
+    y = "Observed proportion"
+  )
+```
