@@ -11,12 +11,14 @@ library(posterior)
 library(tidyverse)
 ```
 
+First read the data and standardise predictors. Use only a random subset of the data for correctness of code checks. 
 ```{r}
 data_processed = read.csv("../data/processed/oasis_processed.csv")
 
 data_processed = data_processed |> select(Age, Educ, nWBV,CDR, sex_male)
 data_processed 
-predictors = data_processed |> select(-CDR) |> mutate(across(Age: nWBV, scale))
+
+predictors = data_processed |> select(-CDR) |> mutate(across(Age: nWBV, scale)) |> slice_sample(n = 80)
 
 simulation_df <- data.frame(
   variable    = character(),
@@ -30,9 +32,9 @@ simulation_df
 ```
 
 
-We generate parameters and data according to our model many times. Then after fitting our model, what proportions of the times the 95%credible interval for the parameter is able to capture the true value of the parameter. 
+We generate parameters and data according to our model many times. Then after fitting our model, what proportions of the times the 90%credible interval for the parameter is able to capture the true value of the parameter. 
 ```{r}
-Niter = 10
+Niter = 30
 
 for (i in 1:Niter) {
 
@@ -123,9 +125,9 @@ simulation_df = bind_rows(simulation_df, summary_df)
 
 }
 
-
 ```
 ```{r}
 simulation_results = simulation_df |> select(iteration, recovered, variable) |> mutate(recovered = as.numeric(recovered)) |> group_by(variable) |> summarise(prob_recovered = mean(recovered))
 simulation_results
 ```
+We can see that for each parameter of the model proportion of the times each it is in the 90% credible interval is roughly 90%, so this confirms that our code can work as intended. 
