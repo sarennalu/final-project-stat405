@@ -92,7 +92,7 @@ Observe that the `Hand` feature only has the value "R", therefore every observat
 data_processed <- data_cleaned %>%
   mutate(CDR_binary = if_else(CDR == 0, 0, 1),
          sex_male = if_else(`M/F` == "M", 1, 0)) %>%
-  select(-`M/F`, -Hand, CDR, -Delay, -ID) # removing columns to be replaced with their mutated versions
+  select(-`M/F`, -Hand, -Delay, -ID) # removing columns to be replaced with their mutated versions
 ```
 Finally, we store the processed data as a .csv file within our repository.
 ```{r}
