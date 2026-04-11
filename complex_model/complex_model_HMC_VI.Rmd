@@ -1,0 +1,267 @@
+---
+title: "complex_model"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(bayesplot))
+suppressPackageStartupMessages(library(cmdstanr))
+suppressPackageStartupMessages(library(posterior))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(purrr))
+
+theme_set(theme_minimal())
+color_scheme_set("mix-blue-red")
+```
+
+We first load the processed data and select the necessary columns. 
+```{r}
+data_processed <- read.csv("../data/processed/oasis_processed.csv")
+
+data_processed <- data_processed |>
+  select(Age, Educ, nWBV, CDR, sex_male) |>
+  filter(
+    !is.na(Age),
+    !is.na(Educ),
+    !is.na(nWBV),
+    !is.na(CDR),
+    !is.na(sex_male)
+  )
+
+N <- nrow(data_processed)
+y <- data_processed$CDR
+age <- data_processed$Age
+sex <- data_processed$sex_male
+brain_volume <- data_processed$nWBV
+educ <- data_processed$Educ
+
+# Standardise continuous predictors
+age_z <- as.numeric(scale(age))
+brain_volume_z <- as.numeric(scale(brain_volume))
+educ_z <- as.numeric(scale(educ))
+brain_educ_z <- brain_volume_z * educ_z
+
+stan_data <- list(
+  N = N,
+  y = y,
+  sex = sex,
+  age = age_z,
+  brain_volume = brain_volume_z,
+  educ = educ_z,
+  brain_educ = brain_educ_z
+)
+```
+Now we compute the posterior using stan. 
+
+```{r}
+mod <- cmdstan_model("complex_model.stan")
+fit_hmc = mod$sample(
+  seed =405,
+  chains = 4,
+  refresh = 1000,
+  data = stan_data,
+  iter_sampling = 4000,
+  show_messages = FALSE
+)
+
+fit_hmc$summary(c("beta1", "beta2", "beta3", "beta4", "beta34", "k0", "delta", "sigma"))
+```
+Fit Variational Inference with meanfield (alternatively try fullrank)
+```{r}
+fit_vi <- mod$variational(
+  data = stan_data,
+  seed = 405,
+  algorithm = "meanfield",
+  iter = 20000,
+  grad_samples = 1,
+  elbo_samples = 100,
+  output_samples = 4000,
+)
+
+fit_vi$summary(c("beta1", "beta2", "beta3", "beta4", "beta34", "k0", "delta", "sigma"))
+```
+
+Extract posterior draws
+
+```{r}
+params <- c("beta1", "beta2", "beta3", "beta4", "beta34", "k0", "delta", "sigma")
+
+draws_hmc <- as_draws_df(fit_hmc$draws(params))
+draws_vi  <- as_draws_df(fit_vi$draws(params))
+```
+
+Comparison table
+
+```{r}
+make_summary <- function(draws_df, method_name, params) {
+  data.frame(
+    parameter = params,
+    mean = sapply(params, function(p) mean(draws_df[[p]])),
+    median = sapply(params, function(p) median(draws_df[[p]])),
+    sd = sapply(params, function(p) sd(draws_df[[p]])),
+    q2.5 = sapply(params, function(p) quantile(draws_df[[p]], 0.025)),
+    q97.5 = sapply(params, function(p) quantile(draws_df[[p]], 0.975)),
+    prob_negative = sapply(params, function(p) mean(draws_df[[p]] < 0)),
+    method = method_name
+  )
+}
+
+summary_comparison <- rbind(
+  make_summary(draws_hmc, "HMC", params),
+  make_summary(draws_vi, "VI meanfield", params)
+)
+
+summary_comparison
+```
+
+```{r}
+summary_comparison %>%
+  filter(parameter %in% c("beta3", "beta34")) %>%
+  arrange(parameter, method)
+```
+
+Posterior deinsity comparison
+
+Brain Volume effect
+
+```{r}
+plot_df_beta3 <- rbind(
+  data.frame(value = draws_hmc$beta3, method = "HMC"),
+  data.frame(value = draws_vi$beta3, method = "VI meanfield")
+)
+
+ggplot(plot_df_beta3, aes(x = value, colour = method)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior comparison for beta3",
+    x = expression(beta[3]),
+    y = "Density"
+  )
+```
+
+Interval comparison plot
+
+```{r}
+plot_df_beta34 <- rbind(
+  data.frame(value = draws_hmc$beta34, method = "HMC"),
+  data.frame(value = draws_vi$beta34, method = "VI meanfield")
+)
+
+ggplot(plot_df_beta34, aes(x = value, colour = method)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior comparison for beta34",
+    x = expression(beta[34]),
+    y = "Density"
+  )
+```
+
+```{r}
+calibration_check <- function(pred_prob, observed_outcome, bins = 8) {
+  df <- data.frame(
+    predicted = pred_prob,
+    observed = observed_outcome
+  )
+
+  df$bin <- dplyr::ntile(df$predicted, bins)
+
+  df |>
+    group_by(bin) |>
+    summarise(
+      mean_predicted = mean(predicted),
+      mean_observed = mean(observed),
+      n = n(),
+      .groups = "drop"
+    )
+}
+
+get_class_predictions <- function(fit_obj) {
+  list(
+    pred_0 = colMeans(as_draws_matrix(fit_obj$draws("p0"))),
+    pred_05 = colMeans(as_draws_matrix(fit_obj$draws("p05"))),
+    pred_1 = colMeans(as_draws_matrix(fit_obj$draws("p1")))
+  )
+}
+```
+
+```{r}
+observed_0  <- as.numeric(data_processed$CDR == 0)
+observed_05 <- as.numeric(data_processed$CDR == 0.5)
+observed_1  <- as.numeric(data_processed$CDR == 1)
+```
+
+
+```{r}
+preds_hmc <- get_class_predictions(fit_hmc)
+
+c0_hmc  <- calibration_check(preds_hmc$pred_0, observed_0, bins = 8)
+c05_hmc <- calibration_check(preds_hmc$pred_05, observed_05, bins = 8)
+c1_hmc  <- calibration_check(preds_hmc$pred_1, observed_1, bins = 8)
+
+c0_hmc$method <- "HMC"
+c05_hmc$method <- "HMC"
+c1_hmc$method <- "HMC"
+
+c0_hmc$class <- "0"
+c05_hmc$class <- "0.5"
+c1_hmc$class <- "1"
+```
+
+
+```{r}
+preds_vi <- get_class_predictions(fit_vi)
+
+c0_vi  <- calibration_check(preds_vi$pred_0, observed_0, bins = 8)
+c05_vi <- calibration_check(preds_vi$pred_05, observed_05, bins = 8)
+c1_vi  <- calibration_check(preds_vi$pred_1, observed_1, bins = 8)
+
+c0_vi$method <- "VI meanfield"
+c05_vi$method <- "VI meanfield"
+c1_vi$method <- "VI meanfield"
+
+c0_vi$class <- "0"
+c05_vi$class <- "0.5"
+c1_vi$class <- "1"
+```
+
+
+```{r}
+calibration_all <- rbind(
+  c0_hmc, c05_hmc, c1_hmc,
+  c0_vi, c05_vi, c1_vi
+)
+
+ggplot(calibration_all, aes(x = mean_predicted, y = mean_observed)) +
+  geom_point() +
+  geom_line() +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+  facet_grid(class ~ method) +
+  labs(
+    title = "Calibration plots: HMC vs VI",
+    x = "Mean predicted probability",
+    y = "Observed proportion"
+  )
+```
+
+
+```{r}
+  
+```
+
+```{r}
+fit_hmc$summary(params)
+```
+```{r}
+mcmc_trace(fit_hmc$draws(c("beta1", "beta3", "beta34", "k0", "delta", "sigma"))) +
+  xlab("Iteration Number")
+```
+```{r}
+mcmc_rank_hist(fit_hmc$draws(c("beta1", "beta3", "beta34", "k0", "delta", "sigma")))
+```
+
+```{r}
+fit_vi
+```
+
