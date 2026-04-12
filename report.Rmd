@@ -233,6 +233,17 @@ cat("Average probability assigned to true outcome:", round(loo_output$avg_prob, 
 The Pareto k estimates tell us that there are no outliers influencing the model. \newline
 The model is assigning 57.3% probability to the correct outcome (correct class of dementia diagnosis) on average for the leave-one-out predictions.  
 
+## Sensitivity Analysis for Naive Model
+
+```{r, echo = FALSE, out.width="70%"}
+include_graphics("plots/naive_model/posterior_beta3.png")
+```
+```{r, echo = FALSE, out.width="70%"}
+include_graphics("plots/naive_model/posterior_beta34.png")
+```
+```{r, echo = FALSE, out.width="70%"}
+include_graphics("plots/naive_model/posterior_medians.png")
+```
 
 # Appendix
 
