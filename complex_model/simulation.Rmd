@@ -1,0 +1,133 @@
+---
+title: "simulation"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(cmdstanr)
+library(posterior)
+library(tidyverse)
+```
+
+First read the data and standardise predictors. Use only a random subset of the data for correctness of code checks. 
+```{r}
+data_processed = read.csv("../data/processed/oasis_processed.csv")
+
+data_processed = data_processed |> select(Age, Educ, nWBV,CDR, sex_male)
+data_processed 
+
+predictors = data_processed |> select(-CDR) |> mutate(across(Age: nWBV, scale)) |> slice_sample(n = 80)
+
+simulation_df <- data.frame(
+  variable    = character(),
+  lower       = numeric(),
+  upper       = numeric(),
+  true_value  = numeric(),
+  recovered   = logical(), 
+  iteration = numeric()
+)
+simulation_df
+```
+
+
+We generate parameters and data according to our model many times. Then after fitting our model, what proportions of the times the 90%credible interval for the parameter is able to capture the true value of the parameter. 
+```{r}
+Niter = 30
+
+for (i in 1:Niter) {
+
+sd_beta = 2
+
+beta1 = rnorm(1,mean =0,sd = sd_beta)
+beta2 = rnorm(1, mean = 0, sd_beta)
+beta3 = rnorm(1, mean = 0, sd_beta)
+beta4 = rnorm(1, mean = 0, sd_beta)
+beta34 = rnorm(1, mean = 0, sd_beta)
+delta = rexp(1, 0.3)
+sigma = rexp(1, 0.3)
+k0 = rnorm(1, 0,1)
+
+params = c(beta1, beta2, beta3, beta4,beta34, delta, sigma, k0)
+
+get_disease = function(age, educ, nWBV, sex_male) {
+  mu = beta1*sex_male +beta2*age + beta3*nWBV +beta4*educ +beta34*nWBV*educ
+  Z = rnorm(1, mu, sd = sigma)
+  if (Z <= k0) {
+    return(0)
+  } else if (Z <= k0 + delta) {
+    return(0.5)
+  } else {
+    return(1)
+  }
+}
+
+full_data <- predictors |>
+  rowwise() |>
+  mutate(y = get_disease(Age, Educ, nWBV, sex_male)) |>
+  ungroup()
+
+full_data
+
+y = as.numeric(full_data$y)
+age = as.numeric(full_data$Age)
+sex = as.numeric(full_data$sex_male)
+brain_volume =as.numeric(full_data$nWBV)
+educ = as.numeric(full_data$Educ)
+brain_educ = as.numeric(educ*brain_volume)
+
+mod <- cmdstan_model("complex_model.stan")
+fit = mod$sample(
+  seed =405,
+  chains = 1,
+  refresh = 1000,
+  data = list( 
+          y = y, 
+          N = nrow(full_data),
+          sex = sex,
+          age = age,
+          brain_volume = brain_volume,
+          educ = educ,
+          brain_educ = brain_educ
+        ), 
+  iter_sampling = 3000,
+  show_messages = FALSE
+)
+
+
+
+true_values = c(beta1 = beta1,
+                beta2 = beta2,
+                beta3 = beta3,
+                beta4 =beta4,
+                beta34 = beta34,
+                delta = delta,
+                sigma = sigma,
+                k0 =k0)
+
+draws = fit$draws(variables = names(true_values))
+
+summary_df = summarise_draws(
+  draws,
+  mean,
+  sd,
+  rhat,
+  ess_bulk,
+  ~quantile(., probs = c(0.025, 0.975))
+)
+
+summary_df = summary_df |> rename(lower= `2.5%`, upper = `97.5%`) |>
+  mutate(true_value = true_values[variable], 
+         recovered= true_value <= upper & true_value >= lower, iteration = rep(i, 8))
+
+simulation_df = bind_rows(simulation_df, summary_df)
+
+}
+
+```
+```{r}
+simulation_results = simulation_df |> select(iteration, recovered, variable) |> mutate(recovered = as.numeric(recovered)) |> group_by(variable) |> summarise(prob_recovered = mean(recovered))
+simulation_results
+```
+We can see that for each parameter of the model proportion of the times each it is in the 90% credible interval is roughly 90%, so this confirms that our code can work as intended. 
