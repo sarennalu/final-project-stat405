@@ -128,7 +128,6 @@ include_graphics("plots/diag_vs_age.png")
 
 # Models
 
-
 \subsection*{Naive Bayesian Logistic Regression Model}
 
 \paragraph{Priors}
@@ -158,6 +157,12 @@ include_graphics("plots/diag_vs_age.png")
 \end{align*}
 
 \subsection*{ADD COMPLEX MODEL HERE}
+
+
+# Implementation of the Naive Model
+
+
+
 
 # Appendix
 

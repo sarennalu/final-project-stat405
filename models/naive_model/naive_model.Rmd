@@ -96,6 +96,8 @@ ggplot(calibration, aes(x = mean_pred, y = mean_true)) +
   xlab("Mean Predicted Probability") + 
   ylab("Mean True Value (Diagnosis)") +
   ggtitle("Calibration Plot")
+
+ggsave("plots/naive_model/calibration.png")
 ```
 As we can see, the plot is not very calibrated.  Therefore, we should try standardizing the numeric predictors to see if we get a better result.
 
