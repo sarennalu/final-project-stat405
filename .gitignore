@@ -55,8 +55,10 @@ rsconnect/
 # System files
 .DS_Store
 
-# pdfs - maybe delete this later
+# pdfs
 *.pdf
+# only include report pdf
+!report.pdf 
 
 # data files
 oasis_processed.csv
