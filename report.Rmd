@@ -156,11 +156,50 @@ include_graphics("plots/diag_vs_age.png")
 \text{CDR\_binary}_i \mid \theta_i \sim \text{Bernoulli}(\theta_i).
 \end{align*}
 
-\subsection*{ADD COMPLEX MODEL HERE}
+\subsection*{Complex Model}
+
+Note that we have set $\beta_0 = 1$ for identifiability
+
+\paragraph{Priors}
+
+\begin{align*}
+\beta_j &\sim \mathcal{N}(0,2) \quad (j = 1, 2, 3 ,34) \\
+\delta &\sim \text{Exp}\left(0.3\right) \\
+k_0 &\sim \mathcal{N}(0,1), \quad k_1 = k_0 + \delta \\
+\sigma &\sim \text{Exponential}(0.3)
+\end{align*}
+
+
+\paragraph{Likelihood}
+
+\paragraph{Hidden Disease Severity Score}
+\begin{align*}
+\mu(i) &= \beta_0 
++ \beta_1 \, \text{sex\_male}_i 
++ \beta_2 \, \text{age}_i 
++ \beta_3 \, \text{brain\_vol}_i 
++ \beta_4 \, \text{educ}_i \\
+&\quad + \beta_{3,4} \, (\text{brain\_vol}_i \times \text{educ}_i)
+\end{align*}
+
+
+
+\begin{align*}
+Z_i \mid \mu(i) &\sim \mathcal{N}(\mu(i), \sigma)
+\end{align*}
+
+\paragraph{Disease Outcome}
+\[
+Y_i \mid Z_i =
+\begin{cases}
+0 & \text{if } Z_i \le k_0 \\
+0.5 & \text{if } k_0 \le Z_i \le k_1 \\
+1 & \text{if } Z_i > k_1
+\end{cases}
+\]
 
 
 # Implementation of the Naive Model
-
 
 
 
