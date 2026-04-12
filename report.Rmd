@@ -11,6 +11,7 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE
 )
+library(knitr)
 library(openxlsx)
 library(dplyr)
 library(ggplot2)
@@ -98,6 +99,33 @@ Despite these advantages, Bayesian approaches have been relatively underutilized
 ## Summary
 
 Existing literature establishes strong links between brain atrophy, demographic factors, and Alzheimer’s disease. However, it largely relies on predictive or frequentist approaches. By adopting a Bayesian perspective, this study contributes to the literature by providing interpretable, uncertainty-aware estimates of how brain structure and clinical variables jointly influence Alzheimer’s disease risk and severity.
+
+## Exploratory Data Analysis
+
+First, we must explore the dataset's feature distributions before designing and fitting models.
+
+```{r, echo = FALSE, out.width="70%"}
+include_graphics("plots/cdr_frequency.png")
+```
+\newline Most patients are not diagnosed with Alzheimers, and of the diagnosed patients, most of them have been diagnosed  with only mild dementia.
+
+
+```{r, echo = FALSE, out.width="70%"}
+include_graphics("plots/diag_vs_nwbv.png")
+```
+\newline From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
+
+```{r, echo = FALSE, out.width="70%"}
+diag_vs_sex <- read.csv("data/diag_vs_sex.csv")
+kable(diag_vs_sex, caption = "Diagnosis vs Sex")
+```
+There are more females in the dataset, males have a higher diagnosis rate than females.
+
+```{r, echo = FALSE, out.width="70%"}
+include_graphics("plots/diag_vs_age.png")
+```
+\newline As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
+
 
 
 # Appendix

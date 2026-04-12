@@ -109,6 +109,7 @@ ggplot(data = data_processed, aes(x = factor(CDR))) +
   xlab("CDR") +
   ylab("Frequency") +
   ggtitle("Frequency of Clinical Dementia Rating")
+ggsave("../plots/cdr_frequency.png")
 ```
 
 Next, lets check the distributions of other important variables.
@@ -179,6 +180,7 @@ notdiag_nwbv <- ggplot(data = not_diagnosed, aes(x=nWBV)) +
   ylab("Frequency") +
   ggtitle("Non-Diagnosed Patients")
 diag_nwbv + notdiag_nwbv
+ggsave("../plots/diag_vs_nwbv.png", plot = diag_nwbv + notdiag_nwbv)
 ```
 From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
 
@@ -194,11 +196,14 @@ The MMSE scores of non-diagnosed patients are usually quite high, meanwhile the 
 We will also investigate the relationship between the target variable and features Age and biological Sex for thoroughness.
 
 ```{r}
-data.frame(
+diag_vs_sex <- data.frame(
   Biological_Sex = c("Female", "Male"),
   Diagnosed = as.vector(table(diagnosed$sex_male)),
   NotDiagnosed = as.vector(table(not_diagnosed$sex_male))
 )
+diag_vs_sex
+
+write.csv(diag_vs_sex, "../data/diag_vs_sex.csv", row.names = FALSE)
 ```
 ```{r}
 plot_age_diagnosed <- diagnosed %>%
@@ -218,6 +223,7 @@ plot_age_notdiagnosed <- not_diagnosed %>%
     ggtitle("Patients Not Diagnosed") +
   theme(axis.text.x = element_text(angle = 35, hjust = 1))
 plot_age_diagnosed + plot_age_notdiagnosed
+ggsave("../plots/diag_vs_age.png", plot = plot_age_diagnosed + plot_age_notdiagnosed)
 ```
 As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
 
