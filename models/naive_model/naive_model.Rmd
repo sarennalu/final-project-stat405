@@ -62,7 +62,7 @@ fit <- naive_model$sample(
 
 ```{r}
 fit_summary <- fit$summary()
-write.csv(fit_summary, "fit_summary.csv", row.names = FALSE)
+write.csv(fit_summary, "../../results/naive_model/fit_summary.csv", row.names = FALSE)
 ```
 `rhat` $\approx 1$ for all parameters, indicating that the chains have all converged to the same distribution.  The bulk and tail ESS are high, indicating efficient sampling.  
 
