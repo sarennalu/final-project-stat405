@@ -150,7 +150,7 @@ diagnostic_table %>%
     max_rhat = max(rhat, na.rm = TRUE),
     min_ess_bulk = min(ess_bulk, na.rm = TRUE),
     min_ess_tail = min(ess_tail, na.rm = TRUE)
-  ) # save
+  ) 
 ```
 
 ## Posterior density plots
@@ -172,7 +172,8 @@ ggplot(posterior_beta3, aes(x = value, color = prior)) +
     x = expression(beta[3]),
     y = "Density",
     color = "Prior"
-  ) # save
+  )
+ggsave("../../plots/naive_model/posterior_beta3.png")
 ```
 
 ```{r}
@@ -192,7 +193,8 @@ ggplot(posterior_beta34, aes(x = value, color = prior)) +
     x = expression(beta[34]),
     y = "Density",
     color = "Prior"
-  ) # save 
+  )
+ggsave("../../plots/naive_model/posterior_beta34.png")
 ```
 
 ## Credible interval plot
@@ -210,7 +212,8 @@ ggplot(interval_plot_data,
     title = "Posterior medians and 95% credible intervals across priors",
     x = "Prior",
     y = "Posterior estimate"
-  ) # save
+  )
+ggsave("../../plots/naive_model/posterior_medians.png")
 ```
 
 ## Calibration plots by prior
