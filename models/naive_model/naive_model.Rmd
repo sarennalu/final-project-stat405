@@ -17,6 +17,7 @@ library(cmdstanr)
 library(ggplot2)
 library(bayesplot)
 library(loo)
+library(patchwork)
 ```
 
 First, lets import the data and prep it to be fed into the stan model.
@@ -97,7 +98,7 @@ ggplot(calibration, aes(x = mean_pred, y = mean_true)) +
   ylab("Mean True Value (Diagnosis)") +
   ggtitle("Calibration Plot")
 
-ggsave("plots/naive_model/calibration.png")
+ggsave("../../plots/naive_model/calibration.png")
 ```
 As we can see, the plot is not very calibrated.  Therefore, we should try standardizing the numeric predictors to see if we get a better result.
 
@@ -179,7 +180,7 @@ mcmc_rank_hist(fit$draws("beta_0")) +
   )
 ```
 ```{r}
-mcmc_rank_hist(fit$draws("beta_3")) +
+beta3_rank_hist <- mcmc_rank_hist(fit$draws("beta_3")) +
   ylab("no of MCMC samples with these ranks") +
   ggtitle("MCMC Ranks Histogram for Prior Beta 3") +
   theme_minimal() +
@@ -190,6 +191,7 @@ mcmc_rank_hist(fit$draws("beta_3")) +
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
     axis.ticks.x = element_line()
   )
+beta3_rank_hist
 ```
 
 ```{r}
@@ -207,7 +209,7 @@ mcmc_rank_hist(fit$draws("beta_4")) +
 ```
 
 ```{r}
-mcmc_rank_hist(fit$draws("beta_34")) +
+beta34_rank_hist <- mcmc_rank_hist(fit$draws("beta_34")) +
   ylab("no of MCMC samples with these ranks") +
   ggtitle("MCMC Ranks Histogram for Interaction Term Prior") +
   theme_minimal() +
@@ -218,6 +220,8 @@ mcmc_rank_hist(fit$draws("beta_34")) +
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
     axis.ticks.x = element_line()
   )
+beta34_rank_hist
+ggsave("../../plots/naive_model/rank_hist.png", plot = beta3_rank_hist + beta34_rank_hist)
 ```
 
 All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
@@ -230,17 +234,20 @@ mcmc_trace(fit$draws("beta_0")) + theme_minimal() +
   ggtitle("Trace Plot for Beta 0 Prior")
 ```
 ```{r}
-mcmc_trace(fit$draws("beta_3")) + theme_minimal() +
+beta3_trace_plot <- mcmc_trace(fit$draws("beta_3")) + theme_minimal() +
   xlab("Iteration Number") +
   ylab("Value of Beta 3") +
   ggtitle("Trace Plot for Beta 3 Prior")
+beta3_trace_plot
 ```
 
 ```{r}
-mcmc_trace(fit$draws("beta_4")) + theme_minimal() +
+beta34_trace_plot <- mcmc_trace(fit$draws("beta_4")) + theme_minimal() +
   xlab("Iteration Number") +
   ylab("Value of Beta 4") +
   ggtitle("Trace Plot for Beta 4 Prior")
+beta34_trace_plot
+ggsave("../../plots/naive_model/trace_plot.png", plot = beta3_trace_plot + beta34_trace_plot)
 ```
 
 ```{r}
@@ -284,6 +291,14 @@ elpd <- loo_result$estimates["elpd_loo", "Estimate"]
 
 N <- nrow(data)
 avg_prob <- exp(elpd / N)
+
+loo_output <- list(
+  loo = loo_result,
+  elpd = elpd,
+  avg_prob = avg_prob
+)
+
+saveRDS(loo_output, "../../results/naive_model/loo_output.rds")
 
 print(loo_result)
 cat("Average probability assigned to true outcome:", round(avg_prob, 3), "\n")
