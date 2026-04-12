@@ -14,7 +14,7 @@ suppressPackageStartupMessages(library(loo))
 
 We first load the processed data and select the necessary columns. 
 ```{r}
-data_processed = read.csv("../data/processed/oasis_processed.csv")
+data_processed = read.csv("../../data/processed/oasis_processed.csv")
 
 data_processed = data_processed |> select(Age, Educ, nWBV, CDR, sex_male)
 
