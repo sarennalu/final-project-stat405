@@ -55,11 +55,23 @@ generated quantities {
   vector[N] p0;
   vector[N] p05;
   vector[N] p1;
+  vector[N] log_lik;
   
   for (i in 1:N) {
     p0[i] = normal_cdf(k0| mu[i], sigma);
     p05[i] = normal_cdf(k1| mu[i], sigma) - normal_cdf(k0| mu[i], sigma);
     p1[i] =  1- normal_cdf(k1|mu[i], sigma);
+    
+    if (y[i] == 0) {
+      log_lik[i] = normal_lcdf(k0 | mu[i], sigma);
+    } else if (y[i] == 0.5) {
+      log_lik[i] = log_diff_exp(
+        normal_lcdf(k1 | mu[i], sigma),
+        normal_lcdf(k0 | mu[i], sigma)
+      );
+    } else {
+      log_lik[i] = normal_lccdf(k1 | mu[i], sigma);
+    }
   }
 }
 

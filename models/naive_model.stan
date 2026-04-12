@@ -60,11 +60,13 @@ model {
 generated quantities {
   
    vector[N] p_pred;
+   vector[N] log_lik;
    array[N] int y_pred;
    
    for (i in 1:N) {
     p_pred[i] = theta[i];
     y_pred[i] = bernoulli_rng(p_pred[i]);
+    log_lik[i] = bernoulli_logit_lpmf(CDR_binary[i] | eta[i]);
   }
   
 }
