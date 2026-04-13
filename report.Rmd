@@ -245,6 +245,10 @@ include_graphics("plots/naive_model/posterior_beta34.png")
 include_graphics("plots/naive_model/posterior_medians.png")
 ```
 
+
+# Contributions of Each Group Member
+Each group member contributed roughly equally.  Michael wrote the literature review, performed the sensitivity analysis for both models, and the variational inference for the complex model.  Sachit wrote the problem formulation, primarily designed both models, and implemented the complex model, including the stan implementation, calibration checks, model diagnostics, evaluation of the posterior approximation, and the code correctness for both models.  Sarenna set up the repository/virtual environment, processing the raw data and the exploratory data analysis, and implementing the naive model, including the stan implementation, calibration checks, model diagnostics, evaluation of the posterior approximation, and the leave-one-out for both models.
+
 # Appendix
 
 ### Sources:
