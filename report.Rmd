@@ -21,6 +21,9 @@ library(cmdstanr)
 library(posterior)
 library(bayesplot)
 library(loo)
+library(gridExtra)
+library(png)
+library(grid)
 ```
 
 # Problem Formulation:
@@ -218,7 +221,7 @@ include_graphics("plots/naive_model/rank_hist.png")
 ```
 \newline All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, out.width="70%"}
 include_graphics("plots/naive_model/trace_plot.png")
 ```
 \newline All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. 
@@ -234,15 +237,93 @@ The Pareto k estimates tell us that there are no outliers influencing the model.
 The model is assigning 57.3% probability to the correct outcome (correct class of dementia diagnosis) on average for the leave-one-out predictions.  
 
 ## Sensitivity Analysis for Naive Model
+```{r, echo=FALSE, fig.width=8, fig.height=4.8}
+library(gridExtra)
+library(png)
+library(grid)
 
-```{r, echo = FALSE, out.width="70%"}
-include_graphics("plots/naive_model/posterior_beta3.png")
+pb3 <- rasterGrob(readPNG("plots/naive_model/posterior_beta3.png"))
+pb4 <- rasterGrob(readPNG("plots/naive_model/posterior_beta34.png"))
+pm  <- rasterGrob(readPNG("plots/naive_model/posterior_medians.png"))
+
+grid.arrange(
+  arrangeGrob(pb3, pb4, ncol = 2),
+  pm,
+  ncol = 1,
+  heights = c(1, 1.1)
+)
 ```
-```{r, echo = FALSE, out.width="70%"}
-include_graphics("plots/naive_model/posterior_beta34.png")
+
+# Implementation of the Complex Model
+After fitting, we inspect the quality of the fit and calibration of the model.
+
+```{r, echo = FALSE}
+fit_sum <- read.csv("results/complex_model/fit_summary.csv")
+kable(head(fit_sum))
 ```
-```{r, echo = FALSE, out.width="70%"}
-include_graphics("plots/naive_model/posterior_medians.png")
+
+```{r, echo=FALSE, fig.width=8, fig.height=10, fig.pos='H'}
+library(gridExtra)
+library(png)
+library(grid)
+
+# --- Calibration + diagnostics ---
+c0  <- rasterGrob(readPNG("plots/complex_model/calibration_class0.png"))
+c05 <- rasterGrob(readPNG("plots/complex_model/calibration_class05.png"))
+c1  <- rasterGrob(readPNG("plots/complex_model/calibration_class1.png"))
+
+b1r <- rasterGrob(readPNG("plots/complex_model/beta1_rank.png"))
+b2r <- rasterGrob(readPNG("plots/complex_model/beta2_rank.png"))
+k0r <- rasterGrob(readPNG("plots/complex_model/k0_rank.png"))
+
+b1t  <- rasterGrob(readPNG("plots/complex_model/beta1_trace.png"))
+b34t <- rasterGrob(readPNG("plots/complex_model/beta34_trace.png"))
+k0t  <- rasterGrob(readPNG("plots/complex_model/k0_trace.png"))
+
+top_block <- arrangeGrob(
+  c0, c05, c1,
+  b1r, b2r, k0r,
+  b1t, b34t, k0t,
+  ncol = 3
+)
+
+# --- Sensitivity analysis ---
+b3d  <- rasterGrob(readPNG("plots/complex_model/beta3_density_hmc_vi.png"))
+b34d <- rasterGrob(readPNG("plots/complex_model/beta34_density_hmc_vi.png"))
+cred <- rasterGrob(readPNG("plots/complex_model/cred_interval_hmc_vi.png"))
+
+bottom_block <- arrangeGrob(
+  arrangeGrob(b3d, b34d, ncol = 2),
+  cred,
+  ncol = 1,
+  heights = c(1, 1.2)
+)
+
+# --- One combined figure ---
+grid.arrange(
+  top_block,
+  bottom_block,
+  ncol = 1,
+  heights = c(2.2, 1.2)
+)
+
+
+## Senstivity Analysis on the Complex Model
+```{r, echo=FALSE, fig.width=8, fig.height=5}
+library(gridExtra)
+library(png)
+library(grid)
+
+b3d  <- rasterGrob(readPNG("plots/complex_model/beta3_density_hmc_vi.png"))
+b34d <- rasterGrob(readPNG("plots/complex_model/beta34_density_hmc_vi.png"))
+cred <- rasterGrob(readPNG("plots/complex_model/cred_interval_hmc_vi.png"))
+
+grid.arrange(
+  b3d, b34d,
+  cred,
+  ncol = 2,
+  heights = c(1, 1.2)
+)
 ```
 
 
