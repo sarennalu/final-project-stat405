@@ -1,16 +1,27 @@
 ---
 title: "Final Project - Bayesian Analysis of Alzheimers Data"
-output:  pdf_document
+output: pdf_document
+header-includes:
+  - \usepackage{float}
+  - \usepackage{titlesec}
+  - \setlength{\textfloatsep}{8pt}
+  - \setlength{\floatsep}{8pt}
+  - \setlength{\intextsep}{8pt}
+  - \titlespacing*{\section}{0pt}{1.2ex plus .2ex minus .2ex}{0.8ex}
+  - \titlespacing*{\subsection}{0pt}{1ex plus .2ex minus .2ex}{0.6ex}
 ---
-
-Sarenna Ulman, Sachit Sharma, Michael Güntert
 
 ```{r setup, include=FALSE}
 # imports 
 knitr::opts_chunk$set(
   warning = FALSE,
-  message = FALSE
+  message = FALSE,
+  echo = FALSE,
+  fig.align = "center",
+  fig.pos = "H",
+  out.width = "85%"
 )
+
 library(knitr)
 library(openxlsx)
 library(dplyr)
@@ -21,6 +32,9 @@ library(cmdstanr)
 library(posterior)
 library(bayesplot)
 library(loo)
+library(gridExtra)
+library(png)
+library(grid)
 ```
 
 # Problem Formulation:
@@ -104,27 +118,27 @@ Existing literature establishes strong links between brain atrophy, demographic 
 
 First, we must explore the dataset's feature distributions before designing and fitting models.
 
-```{r, echo = FALSE, out.width="70%"}
+```{r}
 include_graphics("plots/cdr_frequency.png")
 ```
-\newline Most patients are not diagnosed with Alzheimers, and of the diagnosed patients, most of them have been diagnosed  with only mild dementia.
+Most patients are not diagnosed with Alzheimers, and of the diagnosed patients, most of them have been diagnosed  with only mild dementia.
 
 
-```{r, echo = FALSE, out.width="70%"}
+```{r}
 include_graphics("plots/diag_vs_nwbv.png")
 ```
-\newline From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
+From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
 
-```{r, echo = FALSE, out.width="70%"}
+```{r}
 diag_vs_sex <- read.csv("data/diag_vs_sex.csv")
 kable(diag_vs_sex, caption = "Diagnosis vs Sex")
 ```
 There are more females in the dataset, males have a higher diagnosis rate than females.
 
-```{r, echo = FALSE, out.width="70%"}
+```{r}
 include_graphics("plots/diag_vs_age.png")
 ```
-\newline As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
+As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
 
 # Models
 
@@ -142,7 +156,7 @@ include_graphics("plots/diag_vs_age.png")
 + \beta_1 \cdot \text{sex}_{i,\text{male}} 
 + \beta_2 \cdot \text{age}_i 
 + \beta_3 \cdot \text{brain\_vol}_i 
-+ \beta_4 \cdot \text{educ}_i \\
++ \beta_4 \cdot \text{educ}_i \\ 
 &\quad + \beta_{34} \cdot (\text{brain\_vol}_i \times \text{educ}_i).
 \end{align*}
 
@@ -163,9 +177,9 @@ Note that we have set $\beta_0 = 1$ for identifiability
 \paragraph{Priors}
 
 \begin{align*}
-\beta_j &\sim \mathcal{N}(0,2) \quad (j = 1, 2, 3 ,34) \\
-\delta &\sim \text{Exp}\left(0.3\right) \\
-k_0 &\sim \mathcal{N}(0,1), \quad k_1 = k_0 + \delta \\
+\beta_j &\sim \mathcal{N}(0,2) \quad (j = 1, 2, 3 ,34) \\ 
+\delta &\sim \text{Exp}\left(0.3\right) \\ 
+k_0 &\sim \mathcal{N}(0,1), \quad k_1 = k_0 + \delta \\ 
 \sigma &\sim \text{Exponential}(0.3)
 \end{align*}
 
@@ -178,7 +192,7 @@ k_0 &\sim \mathcal{N}(0,1), \quad k_1 = k_0 + \delta \\
 + \beta_1 \, \text{sex\_male}_i 
 + \beta_2 \, \text{age}_i 
 + \beta_3 \, \text{brain\_vol}_i 
-+ \beta_4 \, \text{educ}_i \\
++ \beta_4 \, \text{educ}_i \\ 
 &\quad + \beta_{3,4} \, (\text{brain\_vol}_i \times \text{educ}_i)
 \end{align*}
 
@@ -192,8 +206,8 @@ Z_i \mid \mu(i) &\sim \mathcal{N}(\mu(i), \sigma)
 \[
 Y_i \mid Z_i =
 \begin{cases}
-0 & \text{if } Z_i \le k_0 \\
-0.5 & \text{if } k_0 \le Z_i \le k_1 \\
+0 & \text{if } Z_i \le k_0 \\ 
+0.5 & \text{if } k_0 \le Z_i \le k_1 \\ 
 1 & \text{if } Z_i > k_1
 \end{cases}
 \]
@@ -202,28 +216,28 @@ Y_i \mid Z_i =
 # Implementation of the Naive Model
 
 After fitting the model, we inspect the quality of the fit.
-```{r, echo = FALSE}
+```{r}
 fit_sum <- read.csv("results/naive_model/fit_summary.csv")
 kable(head(fit_sum))
 ```
 `rhat` $\approx 1$ for all parameters, indicating that the chains have all converged to the same distribution.  The bulk and tail ESS are high, indicating efficient sampling.  
 
-```{r, echo = FALSE, out.width="70%"}
+```{r}
 include_graphics("plots/naive_model/calibration.png")
 ```
-\newline As we can see, the model is only decently calibrated.
+As we can see, the model is only decently calibrated.
 
-```{r, echo = FALSE, out.width="70%"}
+```{r}
 include_graphics("plots/naive_model/rank_hist.png")
 ```
-\newline All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
+All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
 
-```{r, echo = FALSE}
+```{r}
 include_graphics("plots/naive_model/trace_plot.png")
 ```
-\newline All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. 
+All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. 
 
-```{r, echo = FALSE}
+```{r}
 loo_output <- readRDS("results/naive_model/loo_output.rds")
 
 print(loo_output$loo)
@@ -234,15 +248,68 @@ The Pareto k estimates tell us that there are no outliers influencing the model.
 The model is assigning 57.3% probability to the correct outcome (correct class of dementia diagnosis) on average for the leave-one-out predictions.  
 
 ## Sensitivity Analysis for Naive Model
+```{r, echo=FALSE, fig.width=8, fig.height=4.8}
+library(gridExtra)
+library(png)
+library(grid)
 
-```{r, echo = FALSE, out.width="70%"}
-include_graphics("plots/naive_model/posterior_beta3.png")
+pb3 <- rasterGrob(readPNG("plots/naive_model/posterior_beta3.png"))
+pb4 <- rasterGrob(readPNG("plots/naive_model/posterior_beta34.png"))
+pm  <- rasterGrob(readPNG("plots/naive_model/posterior_medians.png"))
+
+grid.arrange(
+  arrangeGrob(pb3, pb4, ncol = 2),
+  pm,
+  ncol = 1,
+  heights = c(1, 1.1)
+)
 ```
-```{r, echo = FALSE, out.width="70%"}
-include_graphics("plots/naive_model/posterior_beta34.png")
+
+# Implementation of the Complex Model
+After fitting, we inspect the quality of the fit and calibration of the model.
+
+```{r}
+fit_sum <- read.csv("results/complex_model/fit_summary.csv")
+kable(head(fit_sum))
 ```
-```{r, echo = FALSE, out.width="70%"}
-include_graphics("plots/naive_model/posterior_medians.png")
+
+```{r, fig.width=10, fig.height=3.8}
+c0  <- rasterGrob(readPNG("plots/complex_model/calibration_class0.png"))
+c05 <- rasterGrob(readPNG("plots/complex_model/calibration_class05.png"))
+c1  <- rasterGrob(readPNG("plots/complex_model/calibration_class1.png"))
+
+grid.arrange(c0, c05, c1, ncol = 3)
+```
+
+```{r, fig.width=10, fig.height=3.8}
+b1r <- rasterGrob(readPNG("plots/complex_model/beta1_rank.png"))
+b2r <- rasterGrob(readPNG("plots/complex_model/beta2_rank.png"))
+k0r <- rasterGrob(readPNG("plots/complex_model/k0_rank.png"))
+
+grid.arrange(b1r, b2r, k0r, ncol = 3)
+```
+
+```{r, fig.width=10, fig.height=3.8}
+b1t  <- rasterGrob(readPNG("plots/complex_model/beta1_trace.png"))
+b34t <- rasterGrob(readPNG("plots/complex_model/beta34_trace.png"))
+k0t  <- rasterGrob(readPNG("plots/complex_model/k0_trace.png"))
+
+grid.arrange(b1t, b34t, k0t, ncol = 3)
+```
+
+## Senstivity Analysis on the Complex Model
+```{r, echo=FALSE, fig.width=8, fig.height=5}
+
+b3d  <- rasterGrob(readPNG("plots/complex_model/beta3_density_hmc_vi.png"))
+b34d <- rasterGrob(readPNG("plots/complex_model/beta34_density_hmc_vi.png"))
+cred <- rasterGrob(readPNG("plots/complex_model/cred_interval_hmc_vi.png"))
+
+grid.arrange(
+  b3d, b34d,
+  cred,
+  ncol = 2,
+  heights = c(1, 1.2)
+)
 ```
 
 
