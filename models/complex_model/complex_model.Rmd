@@ -67,43 +67,69 @@ fit
 Now, we assess the behaviour of our chains using trace plots. 
 
 ```{r}
+summary_df <- fit$summary()
+write.csv(summary_df, "fit_summary_complex_model.csv", row.names = FALSE)
+```
+
+```{r}
 theme_set(theme_minimal())
 
-mcmc_trace(fit$draws("beta1"))  + xlab("Iteration Number")
-mcmc_trace(fit$draws("k0"))     + xlab("Iteration Number")
-mcmc_trace(fit$draws("delta"))  + xlab("Iteration Number")
-mcmc_trace(fit$draws("beta34")) + xlab("Iteration Number")
+p_beta1 <- mcmc_trace(fit$draws("beta1"))  + xlab("Iteration Number")
+p_k0 <- mcmc_trace(fit$draws("k0"))     + xlab("Iteration Number")
+p_delta <- mcmc_trace(fit$draws("delta"))  + xlab("Iteration Number")
+p_beta34 <- mcmc_trace(fit$draws("beta34")) + xlab("Iteration Number")
+
+p_beta1
+p_k0
+p_delta
+p_beta34
+
+ggsave("../../plots/plots_complex_model/beta1_trace.png", plot = p_beta1, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/k0_trace.png", plot = p_k0, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/delta_trace.png", plot = p_delta, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/beta34_trace.png", plot = p_beta34, width = 7, height = 4, dpi = 300)
 ```
 
 We create a rank plot to inspect the rank distribution and mixing behavior.
 
 ```{r}
 
-mcmc_rank_hist(fit$draws("beta1")) +
-  ylab("no of MCMC samples with these ranks") +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+rank_hist_beta1 <- mcmc_rank_hist(fit$draws("beta1")) +
+                      ylab("no of MCMC samples with these ranks") +
+                      theme_minimal() + 
+                      theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-mcmc_rank_hist(fit$draws("beta2")) +
-  ylab("no of MCMC samples with these ranks") +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+rank_hist_beta2 <- mcmc_rank_hist(fit$draws("beta2")) +
+                      ylab("no of MCMC samples with these ranks") +
+                      theme_minimal() + 
+                      theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-mcmc_rank_hist(fit$draws("beta34")) +
-  ylab("no of MCMC samples with these ranks") +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+rank_hist_beta34 <- mcmc_rank_hist(fit$draws("beta34")) +
+                      ylab("no of MCMC samples with these ranks") +
+                      theme_minimal() + 
+                      theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-mcmc_rank_hist(fit$draws("k0")) +
-  ylab("no of MCMC samples with these ranks") +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+rank_hist_k0 <- mcmc_rank_hist(fit$draws("k0")) +
+                  ylab("no of MCMC samples with these ranks") +
+                  theme_minimal() + 
+                  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-mcmc_rank_hist(fit$draws("delta")) +
-  ylab("no of MCMC samples with these ranks") +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+rank_hist_delta <- mcmc_rank_hist(fit$draws("delta")) +
+                      ylab("no of MCMC samples with these ranks") +
+                      theme_minimal() + 
+                      theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+rank_hist_beta1
+rank_hist_beta2
+rank_hist_beta34
+rank_hist_k0
+rank_hist_delta
+
+ggsave("../../plots/plots_complex_model/beta1_rank.png", plot = rank_hist_beta1, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/beta2_rank.png", plot = rank_hist_beta2, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/beta34_rank.png", plot = rank_hist_beta34, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/k0_rank.png", plot = rank_hist_k0, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/k0_rank.png", plot = rank_hist_delta, width = 7, height = 4, dpi = 300)
   
 ```
 
@@ -163,11 +189,17 @@ calibration_plot = function(cal_df, title) {
 ```
 
 ```{r}
-calibration_plot(c0, "Class 0") 
+p_c0  <- calibration_plot(c0, "Class 0")
+p_c1  <- calibration_plot(c1, "Class 1")
+p_c05 <- calibration_plot(c05, "Class 05")
 
-calibration_plot(c1, "Class 1")
+p_c0
+p_c1
+p_c05
 
-calibration_plot(c05, "Class 05")
+ggsave("../../plots/plots_complex_model/calibration_class0.png", plot = p_c0, width = 6, height = 5, dpi = 300)
+ggsave("../../plots/plots_complex_model/calibration_class1.png", plot = p_c1, width = 6, height = 5, dpi = 300)
+ggsave("../../plots/plots_complex_model/calibration_class05.png", plot = p_c05, width = 6, height = 5, dpi = 300)
 
 ```
 

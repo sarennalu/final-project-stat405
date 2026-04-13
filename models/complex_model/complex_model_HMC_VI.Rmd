@@ -18,7 +18,7 @@ color_scheme_set("mix-blue-red")
 
 We first load the processed data and select the necessary columns. 
 ```{r}
-data_processed <- read.csv("../data/processed/oasis_processed.csv")
+data_processed <- read.csv("../../data/processed/oasis_processed.csv")
 
 data_processed <- data_processed |>
   select(Age, Educ, nWBV, CDR, sex_male) |>
@@ -132,14 +132,20 @@ plot_df_beta3 <- rbind(
   data.frame(value = draws_vi$beta3, method = "VI meanfield")
 )
 
-ggplot(plot_df_beta3, aes(x = value, colour = method)) +
+p_beta3 <- ggplot(plot_df_beta3, aes(x = value, colour = method)) +
   geom_density(linewidth = 1) +
   labs(
     title = "Posterior comparison for beta3",
     x = expression(beta[3]),
     y = "Density"
   )
+
+p_beta3
+
+ggsave("../../plots/plots_complex_model/beta3_density_hmc_vi.png", plot = p_beta3, width = 6, height = 4, dpi = 300)
 ```
+The posterior distributions obtained via HMC and mean-field variational inference (VI) are broadly similar in location but differ notably in dispersion. For the brain-volume coefficient $\beta_{3}$, the VI posterior is substantially more concentrated than the HMC posterior, indicating underestimation of uncertainty. This is a well-known limitation of mean-field VI, which assumes independence among parameters and therefore cannot capture posterior correlations.
+
 
 Interval comparison plot
 
@@ -149,14 +155,44 @@ plot_df_beta34 <- rbind(
   data.frame(value = draws_vi$beta34, method = "VI meanfield")
 )
 
-ggplot(plot_df_beta34, aes(x = value, colour = method)) +
+p_beta34 <- ggplot(plot_df_beta34, aes(x = value, colour = method)) +
   geom_density(linewidth = 1) +
   labs(
     title = "Posterior comparison for beta34",
     x = expression(beta[34]),
     y = "Density"
   )
+
+p_beta34
+
+ggsave("../../plots/plots_complex_model/beta34_density_hmc_vi.png", plot = p_beta34, width = 6, height = 4, dpi = 300)
 ```
+In contrast, the posterior distributions for the interaction term $\beta_{34}$ are much more closely aligned between the two methods. Both the location and spread are similar, suggesting that the marginal posterior for this parameter is closer to a Gaussian distribution and less affected by dependence structures.
+
+```{r}
+interval_plot_data <- summary_table %>%
+  filter(parameter %in% c("beta3", "beta34"))
+
+cred_interval <- ggplot(interval_plot_data,
+       aes(x = prior, y = median, ymin = q2.5, ymax = q97.5)) +
+  geom_pointrange() +
+  facet_wrap(~ parameter, scales = "free_y") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Posterior medians and 95% credible intervals across priors",
+    x = "Prior",
+    y = "Posterior estimate"
+  )
+
+cred_interval
+
+ggsave("../../plots/plots_complex_model/cred_interval_hmc_vi.png", plot = cred_interval, width = 6, height = 4, dpi = 300)
+
+```
+
+The discrepancy observed for $\beta_3$ likely reflects underlying posterior dependence with other model parameters, such as the interaction term and intercept-related parameters. HMC captures the full joint posterior structure, including correlations, whereas mean-field VI approximates the posterior as fully factorized. As a result, VI compresses marginal variances when parameters are correlated.
+
+The smaller discrepancy for $\beta_{34}$ suggests that this parameter is less entangled with others in the posterior geometry, making it easier for the factorized approximation to perform well.
 
 ```{r}
 calibration_check <- function(pred_prob, observed_outcome, bins = 8) {
@@ -243,11 +279,6 @@ ggplot(calibration_all, aes(x = mean_predicted, y = mean_observed)) +
     x = "Mean predicted probability",
     y = "Observed proportion"
   )
-```
-
-
-```{r}
-  
 ```
 
 ```{r}

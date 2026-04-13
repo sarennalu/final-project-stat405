@@ -175,6 +175,7 @@ ggplot(posterior_beta3, aes(x = value, color = prior)) +
   )
 ggsave("../../plots/naive_model/posterior_beta3.png")
 ```
+The posterior distributions for $beta_3$ shift noticeably as the prior variance increases. Under the tighter prior N(0,0.5), the posterior is more concentrated and closer to zero, while under weaker priors N(0,1) and N(0,3), the posterior shifts further left and becomes more dispersed. This indicates that the prior is exerting a non-negligible influence on the posterior, especially under stronger regularization. Unlike in the complex model, the data alone are not sufficient to fully determine the magnitude of the brain-volume effect.
 
 ```{r}
 posterior_beta34 <- map2_dfr(
@@ -196,6 +197,8 @@ ggplot(posterior_beta34, aes(x = value, color = prior)) +
   )
 ggsave("../../plots/naive_model/posterior_beta34.png")
 ```
+A similar pattern is observed for $\beta_{34}$. As the prior becomes weaker, the posterior distribution shifts slightly and becomes wider. The posterior under the strongest prior is more concentrated and closer to zero, while weaker priors allow for more negative values.
+However, the changes are somewhat less dramatic than for $\beta_{3}$, indicating that the interaction effect is already relatively uncertain and the prior mainly affects its spread rather than drastically shifting its center.
 
 ## Credible interval plot
 
@@ -215,6 +218,8 @@ ggplot(interval_plot_data,
   )
 ggsave("../../plots/naive_model/posterior_medians.png")
 ```
+The posterior medians for both $\beta_3$ and $\beta_{34}$ clearly change across priors, particularly for $\beta_3$. As the prior variance increases, the estimated effect becomes more negative and the credible intervals widen substantially.
+Importantly, the credible intervals for both parameters are wider than in the complex model, indicating increased uncertainty. For $\beta_{34}$, the intervals extend close to or across zero for all priors, reinforcing the weak evidence for an interaction effect.
 
 ## Calibration plots by prior
 
@@ -275,3 +280,7 @@ for (nm in names(fit_list)) {
   )
 }
 ```
+
+The sensitivity of posterior estimates to prior specification suggests that the naive model suffers from weaker identifiability. In particular, the brain-volume effect is not as strongly determined by the likelihood, allowing the prior to play a larger role in shaping the posterior.
+
+This contrasts with the complex model, where posterior estimates were largely invariant to prior choice.
