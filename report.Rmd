@@ -204,7 +204,7 @@ Y_i \mid Z_i =
 After fitting the model, we inspect the quality of the fit.
 ```{r, echo = FALSE}
 fit_sum <- read.csv("results/naive_model/fit_summary.csv")
-kable(head(fit_sum))
+kable(head(fit_sum, n= 7))
 ```
 `rhat` $\approx 1$ for all parameters, indicating that the chains have all converged to the same distribution.  The bulk and tail ESS are high, indicating efficient sampling.  
 
@@ -244,6 +244,53 @@ include_graphics("plots/naive_model/posterior_beta34.png")
 ```{r, echo = FALSE, out.width="70%"}
 include_graphics("plots/naive_model/posterior_medians.png")
 ```
+
+## Results and Discussion
+
+
+
+We will now try to tackle some of the questions we were interested in. From our exploratory analysis, it seemed that males had a greater chance of being diagnosed. We now try to frame this in terms of the query "Is the coefficient of sex_male in our model greater than 0?$. We try to answer this in two ways:
+
+
+1. *Posterior Probability*: We estimated
+- $P(\beta_1 >0 | Data) = 0.726$: The posterior probability of $\beta_1 >0$ in the complex model was $0.726$. 
+- $\mathbb{E}(\beta_1 | Data) = 0.395$ and a 90% credible interval is
+$[-0.777,	1.577]$.
+
+From these results, it seems that we have some evidence that keeping the other variables constant, biological males usually have a higher CDR score than females. We now approach this question from a decision theory standpoint.
+
+2. *Decision Theory Framework*: We wish to make a decision whether $\beta_1 >0$. Define the loss function:
+
+$$L(a, \beta_1) = 2 \mathbb{I}(a = 1, \beta_1 <0) + \mathbb{I}(a = 0, \beta>0)$$ where $a=1$ indicates that we claim the slope is $>0$. This loss function was chosen because we would like to penalise a false positive much more than a false negative. Using this loss function we estimate
+
+$L(a): = \mathbb{E}(L(a,X)) = 0.548\mathbb{I}(a=1) + 0.726\mathbb{I}(a = 0)$.
+
+Using this framework, under this loss function, an optimal decision would be to conclude that the sex_male effect is positive.
+
+Now, similarly to answer our second and third questions we pose the query:
+What is the probability of $\beta_3 + \beta_{34}educ_{i} < 0$? Using three different level of standardized education levels $(-1, 0, 1)$, we found that for each of the three levels, the posterior probability $Pr(\beta_3 + \beta_{34}*educ_{i} < 0|Data) \approx 1$. This table summarises the posterior means and credible intervals
+
+| Education Level | Posterior Mean of Brain Volume Effect | 95% CrI | P(effect < 0) |
+|---|---|---|---|
+| Low (-1) | -2.845 | (-5.015, -1.229) | 1.00 |
+| Mean (0) | -3.190 | (-5.355, -1.491) | 1.00 |
+| High (-1) | -3.534 | (-6.13, -1.565) | 1.00 |
+
+
+This gives strong evidence that that individuals with lower brain volume have higher CDR scores controlling for the other variables.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Appendix
 
