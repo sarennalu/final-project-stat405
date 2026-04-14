@@ -36,6 +36,8 @@ age_z = as.numeric(scale(age))
 brain_volume_z = as.numeric(scale(brain_volume))
 educ_z = as.numeric(scale(educ))
 brain_educ_z = brain_volume_z*educ_z
+
+
 ```
 
 Now we compute the posterior using stan. 
@@ -220,3 +222,54 @@ cat("Average probability assigned to true outcome:", round(avg_prob, 3), "\n")
 ```
 The Pareto k estimates tell us that there are no outliers influencing the model. \newline
 The model is assigning 45.3% probability to the correct outcome (correct class of dementia diagnosis) on average for the leave-one-out predictions.  This is worse than the naive model, telling us the extra complexity prevents the model from generalizing well.
+
+
+```{r}
+draws <- fit$draws() 
+
+mcmc_hist(draws, pars = "beta1")
+mcmc_hist(draws, pars = "beta2")
+mcmc_hist(draws, pars = "beta3")
+mcmc_hist(draws, pars = "beta34")
+
+
+```
+
+```{r}
+
+samples <- as_draws_df(fit$draws("beta1"))$beta1
+mean(samples >0)
+
+
+
+```
+```{r}
+fit$draws() |>
+  summarise_draws(
+    mean,
+    ~quantile2(.x, probs = c(0.05, 0.95))  # gives columns q5 and q95
+  )
+
+```
+```{r}
+beta3_draws  <- as.vector(fit$draws("beta3",  format = "matrix"))
+beta43_draws <- as.vector(fit$draws("beta34", format = "matrix"))
+
+effect_low_educ = beta3_draws +beta43_draws*(-1)
+effect_mean_educ= beta3_draws +beta43_draws*(0)
+effect_high_educ = beta3_draws + beta43_draws*(1)
+
+summarise_effect <- function(draws) {
+  c(mean    = mean(draws),
+    lower95 = quantile(draws, 0.025),
+    upper95 = quantile(draws, 0.975),
+    prob_negative = mean(draws < 0)) 
+}
+
+summarise_effect(effect_low_educ)
+summarise_effect(effect_mean_educ)
+summarise_effect(effect_high_educ)
+
+
+```
+
