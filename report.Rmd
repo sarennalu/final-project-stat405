@@ -247,9 +247,7 @@ include_graphics("plots/naive_model/posterior_medians.png")
 
 ## Results and Discussion
 
-
-
-We will now try to tackle some of the questions we were interested in. From our exploratory analysis, it seemed that males had a greater chance of being diagnosed. We now try to frame this in terms of the query "Is the coefficient of sex_male in our model greater than 0?$. We try to answer this in two ways:
+We will now try to tackle some of the questions we were interested in using the ordinal model we introduced.  From our exploratory analysis, it seemed that males had a greater chance of being diagnosed. We now try to frame this in terms of the query "Is the coefficient of sex_male in our model greater than 0?. We try to answer this in two ways:
 
 
 1. *Posterior Probability*: We estimated
@@ -259,7 +257,7 @@ $[-0.777,	1.577]$.
 
 From these results, it seems that we have some evidence that keeping the other variables constant, biological males usually have a higher CDR score than females. We now approach this question from a decision theory standpoint.
 
-2. *Decision Theory Framework*: We wish to make a decision whether $\beta_1 >0$. Define the loss function:
+2. *Decision Theory Framework*: We wish to make a decision whether $\beta_1 >0$. Let the action $a=1$ mean concluding that there is a positive slope $\beta_1$. Define the loss function:
 
 $$L(a, \beta_1) = 2 \mathbb{I}(a = 1, \beta_1 <0) + \mathbb{I}(a = 0, \beta>0)$$ where $a=1$ indicates that we claim the slope is $>0$. This loss function was chosen because we would like to penalise a false positive much more than a false negative. Using this loss function we estimate
 
@@ -277,18 +275,21 @@ What is the probability of $\beta_3 + \beta_{34}educ_{i} < 0$? Using three diffe
 | High (-1) | -3.534 | (-6.13, -1.565) | 1.00 |
 
 
-This gives strong evidence that that individuals with lower brain volume have higher CDR scores controlling for the other variables.
+This gives strong evidence that that individuals with lower brain volume have higher CDR scores controlling for the other variables. Since the evidence is so overwhelming, we do not treat this with a decision theoretic framework. 
 
+To answer our final question, we need to ask whether the interaction term in our complex model $\beta_{34}$ is greater than 0. A positive term would mean that at higher education levels the effect of reducing brain volume on the severity of the disease is smaller. 
 
+1. *Posterior Probability*: We found
+- $Pr(\beta_{34}> 0|Data) \approx 0.1948125$, which is very small and incdicates we are not very certain that this coefficient is positive. 
 
+2. *Decision Theory Framework*: Using the same loss function and actions as before, we calculated
+$L(a): = \mathbb{E}(L(a,X)) = 1.610375\mathbb{I}(a=1) + 0.1948\mathbb{I}(a = 0)$, so the Bayes estimator would be to conclude that there isn't a dampening effect of education. 
 
+## Limitations and Implication of Results
 
-
-
-
-
-
-
+Our analysis has a few limitations. Firstly, we did not have a lot of data on the classes 0.5 and 1 and no data for diagnosis levels above that. Since CDR is an ordinal scale ranging from 0 to 3, restricting our outcome to three values means we cannot conclude whether our model is appropriately specified when considering the entire range of CDR scores.
+Secondly, as undergraduate students with a limited understanding of medical sciences, we only analysed whether the main effects of the variables were in a particular direction rather than whether they exceeded a clinically important threshold. A more comprehensive analysis would incorporate such thresholds into the decision framework. Moreover, our loss functions were not based on scientific findings but on our own understanding of the problem, meaning the asymmetry between false positive and false negative costs was not clinically justified.
+Finally, diseases are usually caused by a complex interaction of many variables. Our choice to include only one interaction term — brain volume and education — and to assume linear effects of continuous predictors means other sources of misspecification may be present
 
 
 
