@@ -9,42 +9,6 @@
     ]
   },
   "Packages": {
-    "MASS": {
-      "Package": "MASS",
-      "Version": "7.3-65",
-      "Source": "Repository",
-      "Priority": "recommended",
-      "Date": "2025-02-19",
-      "Revision": "$Rev: 3681 $",
-      "Depends": [
-        "R (>= 4.4.0)",
-        "grDevices",
-        "graphics",
-        "stats",
-        "utils"
-      ],
-      "Imports": [
-        "methods"
-      ],
-      "Suggests": [
-        "lattice",
-        "nlme",
-        "nnet",
-        "survival"
-      ],
-      "Authors@R": "c(person(\"Brian\", \"Ripley\", role = c(\"aut\", \"cre\", \"cph\"), email = \"Brian.Ripley@R-project.org\"), person(\"Bill\", \"Venables\", role = c(\"aut\", \"cph\")), person(c(\"Douglas\", \"M.\"), \"Bates\", role = \"ctb\"), person(\"Kurt\", \"Hornik\", role = \"trl\", comment = \"partial port ca 1998\"), person(\"Albrecht\", \"Gebhardt\", role = \"trl\", comment = \"partial port ca 1998\"), person(\"David\", \"Firth\", role = \"ctb\", comment = \"support functions for polr\"))",
-      "Description": "Functions and datasets to support Venables and Ripley, \"Modern Applied Statistics with S\" (4th edition, 2002).",
-      "Title": "Support Functions and Datasets for Venables and Ripley's MASS",
-      "LazyData": "yes",
-      "ByteCompile": "yes",
-      "License": "GPL-2 | GPL-3",
-      "URL": "http://www.stats.ox.ac.uk/pub/MASS4/",
-      "Contact": "<MASS@stats.ox.ac.uk>",
-      "NeedsCompilation": "yes",
-      "Author": "Brian Ripley [aut, cre, cph], Bill Venables [aut, cph], Douglas M. Bates [ctb], Kurt Hornik [trl] (partial port ca 1998), Albrecht Gebhardt [trl] (partial port ca 1998), David Firth [ctb] (support functions for polr)",
-      "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
-      "Repository": "CRAN"
-    },
     "R6": {
       "Package": "R6",
       "Version": "2.6.1",
@@ -639,50 +603,6 @@
       "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
       "Repository": "CRAN"
     },
-    "distr": {
-      "Package": "distr",
-      "Version": "2.9.7",
-      "Source": "Repository",
-      "Date": "2025-01-11",
-      "Title": "Object Oriented Implementation of Distributions",
-      "Description": "S4-classes and methods for distributions.",
-      "Authors@R": "c(person(\"Florian\", \"Camphausen\", role=\"ctb\", comment=\"contributed as student in the initial phase --2005\"), person(\"Matthias\", \"Kohl\", role=c(\"aut\", \"cph\")), person(\"Peter\", \"Ruckdeschel\", role=c(\"cre\", \"cph\"), email=\"peter.ruckdeschel@uni-oldenburg.de\"), person(\"Thomas\", \"Stabla\", role=\"ctb\", comment=\"contributed as student in the initial phase --2005\"), person(\"R Core Team\", role = c(\"ctb\", \"cph\"), comment=\"for source file ks.c/ routines 'pKS2' and 'pKolmogorov2x'\"))",
-      "Depends": [
-        "R(>= 3.4)",
-        "methods",
-        "graphics",
-        "startupmsg(>= 1.0.0)",
-        "sfsmisc"
-      ],
-      "Suggests": [
-        "distrEx",
-        "svUnit (>= 0.7-11)",
-        "knitr",
-        "distrMod",
-        "ROptEst"
-      ],
-      "Imports": [
-        "stats",
-        "grDevices",
-        "utils",
-        "MASS"
-      ],
-      "Enhances": [
-        "RobAStBase"
-      ],
-      "VignetteBuilder": "knitr",
-      "ByteCompile": "yes",
-      "Encoding": "UTF-8",
-      "License": "LGPL-3",
-      "URL": "http://distr.r-forge.r-project.org/",
-      "LastChangedDate": "{$LastChangedDate: 2024-11-05 21:59:54 +0100 (Di, 05 Nov 2024) $}",
-      "LastChangedRevision": "{$LastChangedRevision: 1482 $}",
-      "VCS/SVNRevision": "1482",
-      "NeedsCompilation": "yes",
-      "Author": "Florian Camphausen [ctb] (contributed as student in the initial phase --2005), Matthias Kohl [aut, cph], Peter Ruckdeschel [cre, cph], Thomas Stabla [ctb] (contributed as student in the initial phase --2005), R Core Team [ctb, cph] (for source file ks.c/ routines 'pKS2' and 'pKolmogorov2x')",
-      "Maintainer": "Peter Ruckdeschel <peter.ruckdeschel@uni-oldenburg.de>",
-      "Repository": "CRAN"
-    },
     "distributional": {
       "Package": "distributional",
       "Version": "0.7.0",
@@ -1128,6 +1048,37 @@
       "Author": "Jim Hester [aut] (<https://orcid.org/0000-0002-2739-7082>), Jennifer Bryan [aut, cre] (<https://orcid.org/0000-0002-6983-2759>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Jennifer Bryan <jenny@posit.co>",
       "Repository": "CRAN"
+    },
+    "gridExtra": {
+      "Package": "gridExtra",
+      "Version": "2.3",
+      "Source": "Repository",
+      "Authors@R": "c(person(\"Baptiste\", \"Auguie\", email = \"baptiste.auguie@gmail.com\", role = c(\"aut\", \"cre\")), person(\"Anton\", \"Antonov\", email = \"tonytonov@gmail.com\", role = c(\"ctb\")))",
+      "License": "GPL (>= 2)",
+      "Title": "Miscellaneous Functions for \"Grid\" Graphics",
+      "Type": "Package",
+      "Description": "Provides a number of user-level functions to work with \"grid\" graphics, notably to arrange multiple grid-based plots on a page, and draw tables.",
+      "VignetteBuilder": "knitr",
+      "Imports": [
+        "gtable",
+        "grid",
+        "grDevices",
+        "graphics",
+        "utils"
+      ],
+      "Suggests": [
+        "ggplot2",
+        "egg",
+        "lattice",
+        "knitr",
+        "testthat"
+      ],
+      "RoxygenNote": "6.0.1",
+      "NeedsCompilation": "no",
+      "Author": "Baptiste Auguie [aut, cre], Anton Antonov [ctb]",
+      "Maintainer": "Baptiste Auguie <baptiste.auguie@gmail.com>",
+      "Repository": "CRAN",
+      "Encoding": "UTF-8"
     },
     "gtable": {
       "Package": "gtable",
@@ -1850,6 +1801,26 @@
       "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
       "Repository": "CRAN"
     },
+    "png": {
+      "Package": "png",
+      "Version": "0.1-9",
+      "Source": "Repository",
+      "Title": "Read and write PNG images",
+      "Author": "Simon Urbanek [aut, cre, cph] (https://urbanek.nz, ORCID: <https://orcid.org/0000-0003-2297-1732>)",
+      "Authors@R": "person(\"Simon\", \"Urbanek\", role=c(\"aut\",\"cre\",\"cph\"), email=\"Simon.Urbanek@r-project.org\", comment=c(\"https://urbanek.nz\", ORCID=\"0000-0003-2297-1732\"))",
+      "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+      "Depends": [
+        "R (>= 2.9.0)"
+      ],
+      "Description": "This package provides an easy and simple way to read, write and display bitmap images stored in the PNG format. It can read and write both files and in-memory raw vectors.",
+      "License": "GPL-2 | GPL-3",
+      "SystemRequirements": "libpng",
+      "URL": "https://www.rforge.net/png/",
+      "BugReports": "https://github.com/s-u/png/issues/",
+      "NeedsCompilation": "yes",
+      "Repository": "CRAN",
+      "Encoding": "UTF-8"
+    },
     "posterior": {
       "Package": "posterior",
       "Version": "1.7.0",
@@ -2334,87 +2305,6 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut], Thomas Lin Pedersen [cre, aut] (<https://orcid.org/0000-0002-5147-4711>), Dana Seidel [aut], Posit Software, PBC [cph, fnd] (03wc8by49)",
       "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
-      "Repository": "CRAN"
-    },
-    "sfsmisc": {
-      "Package": "sfsmisc",
-      "Version": "1.1-23",
-      "Source": "Repository",
-      "Title": "Utilities from 'Seminar fuer Statistik' ETH Zurich",
-      "VersionNote": "Last CRAN: 1.1-22 on 2025-08-30; 1.1-21 on 2025-07-25; 1.1-20 on 2024-10-23; 1.1-19 on 2024-08-16",
-      "Date": "2025-11-20",
-      "Authors@R": "c(person(\"Martin\",\"Maechler\", role=c(\"aut\",\"cre\"), email=\"maechler@stat.math.ethz.ch\", comment = c(ORCID = \"0000-0002-8685-9910\")) , person(\"Werner\", \"Stahel\", role = \"ctb\", comment = \"Functions: compresid2way(), f.robftest(), last(), p.scales(), p.dnorm()\") , person(\"Andreas\", \"Ruckstuhl\", role = \"ctb\", comment = \"Functions: p.arrows(), p.profileTraces(), p.res.2x()\") , person(\"Christian\", \"Keller\", role = \"ctb\", comment = \"Functions: histBxp(), p.tachoPlot()\") , person(\"Kjetil\", \"Halvorsen\", role = \"ctb\", comment = \"Functions: KSd(), ecdf.ksCI()\") , person(\"Alain\", \"Hauser\", role = \"ctb\", comment = \"Functions: cairoSwd(), is.whole(), toLatex.numeric()*\") , person(\"Christoph\", \"Buser\", role = \"ctb\", comment = \"to function Duplicated()\") , person(\"Lorenz\", \"Gygax\", role = \"ctb\", comment = \"to function p.res.2fact()\") , person(\"Bill\", \"Venables\", role = \"ctb\", comment = \"Functions: empty.dimnames(), primes()\") , person(\"Tony\", \"Plate\", role = \"ctb\", comment = \"to inv.seq()\") # minor contributors: , person(\"Isabelle\", \"Flückiger\", role = \"ctb\") , person(\"Marcel\", \"Wolbers\", role = \"ctb\") , person(\"Markus\", \"Keller\", role = \"ctb\") , person(\"Sandrine\", \"Dudoit\", role = \"ctb\") , person(\"Jane\", \"Fridlyand\", role = \"ctb\") , person(\"Greg\", \"Snow\", role = \"ctb\", comment = \"to loessDemo()\") , person(\"Henrik Aa.\", \"Nielsen\", role = \"ctb\", comment = \"to loessDemo()\") , person(\"Vincent\", \"Carey\", role = \"ctb\") , person(\"Ben\", \"Bolker\", role = \"ctb\") , person(\"Philippe\", \"Grosjean\", role = \"ctb\") , person(\"Frédéric\", \"Ibanez\", role = \"ctb\") , person(\"Caterina\", \"Savi\", role = \"ctb\") , person(\"Charles\", \"Geyer\", role = \"ctb\") , person(\"Jens\", \"Oehlschlägel\", role = \"ctb\") )",
-      "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
-      "Description": "Useful utilities ['goodies'] from Seminar fuer Statistik ETH Zurich, some of which were ported from S-plus in the 1990s. For graphics, have pretty (Log-scale) axes eaxis(), an enhanced Tukey-Anscombe plot, combining histogram and boxplot, 2d-residual plots, a 'tachoPlot()', pretty arrows, etc. For robustness, have a robust F test and robust range(). For system support, notably on Linux, provides 'Sys.*()' functions with more access to system and CPU information. Finally, miscellaneous utilities such as simple efficient prime numbers, integer codes, Duplicated(), toLatex.numeric() and is.whole().",
-      "Depends": [
-        "R (>= 3.3.0)"
-      ],
-      "Imports": [
-        "grDevices",
-        "utils",
-        "stats",
-        "tools"
-      ],
-      "Suggests": [
-        "datasets",
-        "tcltk",
-        "cluster",
-        "lattice",
-        "MASS",
-        "Matrix",
-        "nlme",
-        "lokern",
-        "Rmpfr",
-        "gmp"
-      ],
-      "Enhances": [
-        "mgcv",
-        "rpart",
-        "nor1mix",
-        "polycor",
-        "sm",
-        "tikzDevice",
-        "DescTools",
-        "e1071",
-        "Hmisc",
-        "pastecs",
-        "polynom",
-        "relevance",
-        "robustbase"
-      ],
-      "EnhancesNote": "2nd line: packages mentioned in Rd xrefs",
-      "Encoding": "UTF-8",
-      "ByteCompile": "yes",
-      "License": "GPL (>= 2)",
-      "URL": "https://github.com/mmaechler/sfsmisc",
-      "BugReports": "https://github.com/mmaechler/sfsmisc/issues",
-      "NeedsCompilation": "no",
-      "Author": "Martin Maechler [aut, cre] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Werner Stahel [ctb] (Functions: compresid2way(), f.robftest(), last(), p.scales(), p.dnorm()), Andreas Ruckstuhl [ctb] (Functions: p.arrows(), p.profileTraces(), p.res.2x()), Christian Keller [ctb] (Functions: histBxp(), p.tachoPlot()), Kjetil Halvorsen [ctb] (Functions: KSd(), ecdf.ksCI()), Alain Hauser [ctb] (Functions: cairoSwd(), is.whole(), toLatex.numeric()*), Christoph Buser [ctb] (to function Duplicated()), Lorenz Gygax [ctb] (to function p.res.2fact()), Bill Venables [ctb] (Functions: empty.dimnames(), primes()), Tony Plate [ctb] (to inv.seq()), Isabelle Flückiger [ctb], Marcel Wolbers [ctb], Markus Keller [ctb], Sandrine Dudoit [ctb], Jane Fridlyand [ctb], Greg Snow [ctb] (to loessDemo()), Henrik Aa. Nielsen [ctb] (to loessDemo()), Vincent Carey [ctb], Ben Bolker [ctb], Philippe Grosjean [ctb], Frédéric Ibanez [ctb], Caterina Savi [ctb], Charles Geyer [ctb], Jens Oehlschlägel [ctb]",
-      "Repository": "CRAN"
-    },
-    "startupmsg": {
-      "Package": "startupmsg",
-      "Version": "1.0.0",
-      "Source": "Repository",
-      "Encoding": "UTF-8",
-      "Date": "2025-01-11",
-      "Title": "Utilities for Start-Up Messages",
-      "Description": "Provides utilities to create or suppress start-up messages.",
-      "Authors@R": "person(\"Peter\", \"Ruckdeschel\", role=c(\"cre\", \"cph\", \"aut\"), email=\"peter.ruckdeschel@uni-oldenburg.de\", comment = c(ORCID = \"0000-0001-7815-4809\"))",
-      "Depends": [
-        "R(>= 1.8.0)"
-      ],
-      "Imports": [
-        "utils"
-      ],
-      "ByteCompile": "yes",
-      "License": "LGPL-3",
-      "LastChangedDate": "{$LastChangedDate: 2024-08-29 10:38:14 +0200 (Do, 29 Aug 2024) $}",
-      "LastChangedRevision": "{$LastChangedRevision: 1449 $}",
-      "VCS/SVNRevision": "1482",
-      "NeedsCompilation": "no",
-      "Author": "Peter Ruckdeschel [cre, cph, aut] (<https://orcid.org/0000-0001-7815-4809>)",
-      "Maintainer": "Peter Ruckdeschel <peter.ruckdeschel@uni-oldenburg.de>",
       "Repository": "CRAN"
     },
     "stringi": {

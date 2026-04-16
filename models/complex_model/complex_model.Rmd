@@ -63,6 +63,8 @@ fit = mod$sample(
 )
 
 fit
+fit_summary <- fit$summary()
+write.csv(fit_summary, "../../results/complex_model/fit_summary.csv", row.names = FALSE)
 ```
 Now, we assess the behaviour of our chains using trace plots. 
 
@@ -214,6 +216,14 @@ elpd <- loo_result$estimates["elpd_loo", "Estimate"]
 
 N <- nrow(data_processed)
 avg_prob <- exp(elpd / N)
+
+loo_output <- list(
+  loo = loo_result,
+  elpd = elpd,
+  avg_prob = avg_prob
+)
+
+saveRDS(loo_output, "../../results/complex_model/loo_output.rds")
 
 print(loo_result)
 cat("Average probability assigned to true outcome:", round(avg_prob, 3), "\n")
