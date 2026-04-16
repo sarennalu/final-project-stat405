@@ -23,7 +23,7 @@ color_scheme_set("mix-blue-red")
 ## Data preparation
 
 ```{r}
-data_processed <- read.csv("../data/processed/oasis_processed.csv")
+data_processed <- read.csv("../../data/processed/oasis_processed.csv")
 
 data <- data_processed %>%
   select(Age, Educ, nWBV, CDR, sex_male) %>%
@@ -166,7 +166,7 @@ posterior_beta3 <- map2_dfr(
   }
 )
 
-ggplot(posterior_beta3, aes(x = value, color = prior)) +
+posterior_beta3 <- ggplot(posterior_beta3, aes(x = value, color = prior)) +
   geom_density(linewidth = 1) +
   labs(
     title = "Posterior density of brain-volume effect across priors",
@@ -174,7 +174,15 @@ ggplot(posterior_beta3, aes(x = value, color = prior)) +
     y = "Density",
     color = "Prior"
   )
+
+posterior_beta3
+
+ggsave("../../plots/plots_complex_model/posterior_beta3_sensitivity.png", plot = posterior_beta3, width = 6, height = 4, dpi = 300)
 ```
+Across all prior specifications (N(0, 0.5), N(0, 1), N(0, 2)), the posterior median of $\beta_3$ remains stable, and the credible intervals show only minor changes in width. Importantly, all intervals lie well below zero, indicating a consistently negative effect.
+
+This stability suggests that the posterior for $\beta_3$ is dominated by the likelihood rather than the prior, implying strong information in the data.
+
 
 ```{r}
 posterior_beta34 <- map2_dfr(
@@ -186,7 +194,7 @@ posterior_beta34 <- map2_dfr(
   }
 )
 
-ggplot(posterior_beta34, aes(x = value, color = prior)) +
+posterior_beta34 <- ggplot(posterior_beta34, aes(x = value, color = prior)) +
   geom_density(linewidth = 1) +
   labs(
     title = "Posterior density of interaction effect across priors",
@@ -194,7 +202,15 @@ ggplot(posterior_beta34, aes(x = value, color = prior)) +
     y = "Density",
     color = "Prior"
   )
+
+posterior_beta34
+
+ggsave("../../plots/plots_complex_model/posterior_beta34_sensitivity.png", plot = posterior_beta3, width = 6, height = 4, dpi = 300)
 ```
+The posterior for $\beta_{34}$ also shows stability across priors in terms of median estimates, but the credible intervals remain relatively wide and include values near zero. This indicates greater uncertainty compared to $\beta_{34}$.
+
+While prior choice does not drastically alter the conclusions, the interaction effect appears to be more weakly identified.
+
 
 ## Credible interval plots
 
@@ -202,7 +218,7 @@ ggplot(posterior_beta34, aes(x = value, color = prior)) +
 interval_plot_data <- summary_table %>%
   filter(parameter %in% c("beta3", "beta34", "c1", "delta", "c2"))
 
-ggplot(
+cred_interval <- ggplot(
   interval_plot_data,
   aes(x = prior, y = median, ymin = q2.5, ymax = q97.5)
 ) +
@@ -214,6 +230,10 @@ ggplot(
     x = "Prior",
     y = "Posterior estimate"
   )
+
+cred_interval
+
+ggsave("../../plots/plots_complex_model/cred_interval_sensitivity.png", plot = cred_interval, width = 6, height = 4, dpi = 300)
 ```
 
 ## Trace plots and rank histograms
@@ -296,3 +316,9 @@ ggplot(calibration_all, aes(x = mean_predicted, y = mean_observed, group = 1)) +
     y = "Observed proportion"
   )
 ```
+
+
+## Scientific Meaning
+The consistently negative posterior for $\beta_3$ suggests that higher brain volume is associated with lower severity of the outcome variable, holding other covariates constant. This aligns with expectations in neurodegenerative disease contexts, where brain atrophy is associated with worse clinical outcomes.
+
+The interaction term $\beta_{34}$ does not show strong evidence of a meaningful effect, suggesting that the relationship between brain volume and outcome may not vary substantially with education (or is weakly detectable in the data).
