@@ -182,7 +182,7 @@ mcmc_rank_hist(fit$draws("beta_0")) +
 ```{r}
 beta3_rank_hist <- mcmc_rank_hist(fit$draws("beta_3")) +
   ylab("no of MCMC samples with these ranks") +
-  ggtitle("MCMC Ranks Histogram for Prior Beta 3") +
+  ggtitle("Prior Beta 3") +
   theme_minimal() +
   scale_x_continuous(
     breaks = seq(0, 10000, by = 2500)
@@ -197,7 +197,7 @@ beta3_rank_hist
 ```{r}
 mcmc_rank_hist(fit$draws("beta_4")) +
   ylab("no of MCMC samples with these ranks") +
-  ggtitle("MCMC Ranks Histogram for Prior Beta 4") +
+  ggtitle("Prior Beta 4") +
   theme_minimal() +
   scale_x_continuous(
     breaks = seq(0, 10000, by = 2500)
@@ -211,7 +211,7 @@ mcmc_rank_hist(fit$draws("beta_4")) +
 ```{r}
 beta34_rank_hist <- mcmc_rank_hist(fit$draws("beta_34")) +
   ylab("no of MCMC samples with these ranks") +
-  ggtitle("MCMC Ranks Histogram for Interaction Term Prior") +
+  ggtitle("Interaction Term Prior") +
   theme_minimal() +
   scale_x_continuous(
     breaks = seq(0, 10000, by = 2500)

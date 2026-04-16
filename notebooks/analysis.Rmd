@@ -180,7 +180,7 @@ notdiag_nwbv <- ggplot(data = not_diagnosed, aes(x=nWBV)) +
   ylab("Frequency") +
   ggtitle("Non-Diagnosed Patients")
 diag_nwbv + notdiag_nwbv
-ggsave("../plots/diag_vs_nwbv.png", plot = diag_nwbv + notdiag_nwbv)
+# ggsave("../plots/diag_vs_nwbv.png", plot = diag_nwbv + notdiag_nwbv)
 ```
 From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
 
@@ -212,7 +212,7 @@ plot_age_diagnosed <- diagnosed %>%
     geom_bar(fill = "red", color = "darkred") + 
     xlab("Age") +
     ylab("Frequency") + 
-    ggtitle("Patients Diagnosed with Alzheimers") +
+    ggtitle("Diagnosed Patients") +
   theme(axis.text.x = element_text(angle = 35, hjust = 1))
 plot_age_notdiagnosed <- not_diagnosed %>%
   mutate(Age_binned = cut(Age, breaks = seq(0, 100, by = 5))) %>%
@@ -220,14 +220,18 @@ plot_age_notdiagnosed <- not_diagnosed %>%
     geom_bar(fill = "lightblue", color = "blue") + 
     xlab("Age") +
     ylab("Frequency") + 
-    ggtitle("Patients Not Diagnosed") +
+    ggtitle("Non-Diagnosed Patients") +
   theme(axis.text.x = element_text(angle = 35, hjust = 1))
 plot_age_diagnosed + plot_age_notdiagnosed
-ggsave("../plots/diag_vs_age.png", plot = plot_age_diagnosed + plot_age_notdiagnosed)
+# ggsave("../plots/diag_vs_age.png", plot = plot_age_diagnosed + plot_age_notdiagnosed)
 ```
 As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
 
-
+```{r}
+p <- diag_nwbv + notdiag_nwbv + plot_age_diagnosed + plot_age_notdiagnosed +
+     plot_layout(ncol = 4)
+ggsave("../plots/diag_vs_nwbv_and_age.png", p, width = 12, height = 3)
+```
 ### Analyzing the Correlation between Key Predictor Features
 ```{r}
 corrplot(corr_matrix)

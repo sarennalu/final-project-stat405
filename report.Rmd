@@ -49,13 +49,24 @@ i) **How are brain volume, age and biological sex associated with the probabilit
 
 
 ## Basic Biological Context and Important Variables
-**CDR (The Clinical Dementia Rating Scale)** is a common tool used to assess cognitive impairment.  CDR score of 0 indicates no dementia, 0.5 indicates questionable dementia, 1 is mild dementia, 2 is moderate, and 3 indicates severe dementia. Any individual with a score > 0 has been diagnosed with probable AD. Hence, CDR is a diagnostic as well as a severity tool. 
+**CDR (Clinical Dementia Rating)** is a common tool used to assess cognitive impairment, with scores mapped as follows: \newline
+\small
+0: none \quad 0.5: questionable \quad 1: mild \quad 2: moderate \quad 3: severe \newline
+\normalsize
+Any score \(> 0\) indicates probable AD, making CDR both a diagnostic and severity measure.
 
-**MMSE: (Mini-Mental State Examination score)** This is a brief test of global cognitive function, where lower scores usually mean worse cognition. 
+**MMSE: (Mini-Mental State Examination score)** This is a brief test of global cognitive function, with the following scores describing the severity of cognitive decline. \newline
+\small
+24--30: Normal \quad 19--23: Mild \quad 10--18: Moderate \quad 0--9: Severe
 
 **eTIV (estimated total intracranial volume)** Estimated total volume inside skull, estimated from MRI results. 
 
 **nWBV (normalized whole-brain volume)**  This is the proportion of the intracranial cavity occupied by brain tissue. A lower volume would indicate more brain atrophy. Normalization ensures that differences in nWBV correspond to brain atrophy instead of differences in head size.  We are interested in this variable because brain atrophy is a key characteristic of Alzheimer’s disease progression. 
+
+**Educ (Education Level)** describes an individual’s highest level of education: \newline
+\small 
+1: <HS \quad 2: HS grad \quad 3: some college \quad 4: bachelor’s \quad 5: postgraduate \newline
+\normalsize
 
 ## Key Modelling Challenges:
 
@@ -65,40 +76,9 @@ In addition, we will assess the posterior predictive probabilities for our model
 
 # Literature Review
 
-Alzheimer’s disease (AD) is a progressive neurodegenerative disorder characterized by cognitive decline and structural brain atrophy. Neuroimaging studies have consistently shown that reductions in brain volume are strongly associated with both aging and Alzheimer’s disease severity. In particular, whole brain volume is known to decline gradually with age and more rapidly in individuals with Alzheimer’s disease, reflecting disease-related neurodegeneration.
+Alzheimer’s disease (AD) is a progressive neurodegenerative disorder characterized by cognitive decline and structural brain atrophy. Neuroimaging studies have consistently shown that reductions in brain volume are strongly associated with both aging and Alzheimer’s disease severity. In particular, whole brain volume is known to decline gradually with age and more rapidly in individuals with Alzheimer’s disease, reflecting disease-related neurodegeneration.  These structural changes are closely linked to clinical measures such as the CDR and MMSE.
 
-These structural changes are closely linked to clinical measures such as the Clinical Dementia Rating (CDR):
-
-- 0 = no dementia  
-- 0.5 = very mild  
-- 1 = mild  
-- 2 = moderate  
-- 3 = severe dementia  
-
-And the Mini-Mental State Examination (MMSE):
-
-- 24–30: normal cognition  
-- 19–23: mild cognitive impairment  
-- 10–18: moderate cognitive impairment  
-- 0–9: severe cognitive impairment  
-
-A widely used dataset for studying these relationships is the Open Access Series of Imaging Studies (OASIS), introduced by Marcus et al. (2007). This dataset combines MRI-derived brain measurements with demographic and clinical variables, making it particularly suitable for statistical modeling of Alzheimer’s disease. Key variables include age, biological sex (M/F), years of education (Educ), and socioeconomic status (SES), as well as brain imaging measures such as estimated total intracranial volume (eTIV) and normalized whole-brain volume (nWBV).
-
-## Education Levels (Educ)
-
-- Level 1: Less than high school graduation  
-- Level 2: High school graduate (or equivalent)  
-- Level 3: Some college (did not complete a 4-year degree)  
-- Level 4: College graduate (Bachelor’s degree)  
-- Level 5: Beyond college (graduate or professional degree, e.g., MA, PhD, MD)  
-
-## Socioeconomic Status (SES)
-
-- Level 1: Upper class  
-- Level 2: Upper middle class  
-- Level 3: Middle class  
-- Level 4: Lower middle class  
-- Level 5: Lower class  
+A widely used dataset for studying these relationships is the Open Access Series of Imaging Studies (OASIS), introduced by Marcus et al. (2007). This dataset combines MRI-derived brain measurements with demographic and clinical variables, making it particularly suitable for statistical modeling of Alzheimer’s disease. Key variables include age, biological sex (M/F), Educ, as well as brain imaging measures such as eTIV and nWBV.
 
 Among these, nWBV is of particular importance as it provides a normalized measure of brain volume that captures atrophy, while eTIV reflects head size and serves as a scaling factor. Clinical variables such as CDR and MMSE provide complementary measures of disease presence and severity. Socioeconomic status (SES) and education level are also important covariates, as they capture social and cognitive factors that may influence disease risk and progression.
 
@@ -115,19 +95,12 @@ Despite these advantages, Bayesian approaches have been relatively underutilized
 Existing literature establishes strong links between brain atrophy, demographic factors, and Alzheimer’s disease. However, it largely relies on predictive or frequentist approaches. By adopting a Bayesian perspective, this study contributes to the literature by providing interpretable, uncertainty-aware estimates of how brain structure and clinical variables jointly influence Alzheimer’s disease risk and severity.
 
 ## Exploratory Data Analysis
-
 First, we must explore the dataset's feature distributions before designing and fitting models.
 
-```{r}
+```{r, out.width = "45%"}
 include_graphics("plots/cdr_frequency.png")
 ```
 Most patients are not diagnosed with Alzheimers, and of the diagnosed patients, most of them have been diagnosed  with only mild dementia.
-
-
-```{r}
-include_graphics("plots/diag_vs_nwbv.png")
-```
-From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.
 
 ```{r}
 diag_vs_sex <- read.csv("data/diag_vs_sex.csv")
@@ -135,10 +108,10 @@ kable(diag_vs_sex, caption = "Diagnosis vs Sex")
 ```
 There are more females in the dataset, males have a higher diagnosis rate than females.
 
-```{r}
-include_graphics("plots/diag_vs_age.png")
+```{r, out.width = "110%"}
+include_graphics("plots/diag_vs_nwbv_and_age.png")
 ```
-As we can see from the plot, diagnosed patients tend to be older, where non diagnosed patients represent all ages.
+From the plot above, it appears diagnosed patients typically have less whole brain volume than non-diagnosed patients.  Diagnosed patients tend to be older, where non diagnosed patients represent all ages.
 
 # Models
 
@@ -222,17 +195,17 @@ kable(head(fit_sum, n= 7))
 ```
 `rhat` $\approx 1$ for all parameters, indicating that the chains have all converged to the same distribution.  The bulk and tail ESS are high, indicating efficient sampling.  
 
-```{r}
+```{r, out.width = "50%"}
 include_graphics("plots/naive_model/calibration.png")
 ```
 As we can see, the model is only decently calibrated.
 
-```{r}
+```{r, out.width = "65%"}
 include_graphics("plots/naive_model/rank_hist.png")
 ```
 All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
 
-```{r}
+```{r, out.width = "80%"}
 include_graphics("plots/naive_model/trace_plot.png")
 ```
 All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. 
