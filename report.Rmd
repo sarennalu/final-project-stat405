@@ -355,6 +355,26 @@ To answer our final question, we need to ask whether the interaction term in our
 2. *Decision Theory Framework*: Using the same loss function and actions as before, we calculated
 $L(a): = \mathbb{E}(L(a,X)) = 1.610375\mathbb{I}(a=1) + 0.1948\mathbb{I}(a = 0)$, so the Bayes estimator would be to conclude that there isn't a dampening effect of education. 
 
+### Prior Sensitivity Analysis
+
+We assessed robustness to prior choice by varying the prior variance for the regression coefficients.
+
+For the complex model, the posterior for the brain-volume effect $\beta_3$ was highly stable across priors. The posterior median changed only slightly, and the credible intervals remained clearly below zero, indicating that this effect is strongly informed by the data. The interaction term $\beta_{34}$ was also relatively stable, though its credible interval remained wider and closer to zero, suggesting weaker evidence.
+
+In contrast, the naive model showed greater sensitivity to prior choice. Both $\beta_3$ and $\beta_{34}$ shifted more noticeably as the prior variance increased, and their credible intervals widened. This indicates weaker identifiability and a stronger influence of the prior.
+
+Overall, the complex model provides more robust, data-driven inference, while the naive model is more sensitive to prior assumptions.
+
+### Comparison of HMC and Variational Inference
+
+We compared HMC with mean-field variational inference (VI) for the complex model.
+
+For $\beta_3$, VI produced a noticeably narrower posterior than HMC, indicating underestimation of uncertainty. This is consistent with the limitations of mean-field VI, which cannot capture posterior dependence between parameters. Despite this, both methods agreed on the negative direction of the effect.
+
+For $\beta_{34}$, the HMC and VI posteriors were much more similar in both location and spread, suggesting that this parameter is easier to approximate with a factorized variational family.
+
+Since HMC diagnostics indicated good convergence, the broader HMC posterior should be considered more reliable. Thus, while VI recovers posterior means well, HMC provides more accurate uncertainty quantification.
+
 ## Limitations and Implication of Results
 
 Our analysis has a few limitations. Firstly, we did not have a lot of data on the classes 0.5 and 1 and no data for diagnosis levels above that. Since CDR is an ordinal scale ranging from 0 to 3, restricting our outcome to three values means we cannot conclude whether our model is appropriately specified when considering the entire range of CDR scores.
