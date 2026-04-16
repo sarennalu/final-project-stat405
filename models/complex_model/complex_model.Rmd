@@ -239,6 +239,8 @@ mcmc_hist(draws, pars = "beta34")
 
 samples <- as_draws_df(fit$draws("beta1"))$beta1
 mean(samples >0)
+samples34 <- as_draws_df(fit$draws("beta34"))$beta34
+2*(1 -mean(samples34  >0))
 
 
 
