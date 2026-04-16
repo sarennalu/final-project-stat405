@@ -69,3 +69,7 @@ models/complex_model/complex_model
 
 models/naive_model/naive_model.exe
 models/complex_model/complex_model.exe
+
+models/naive_model/naive_model_sensitivity.exe
+models/complex_model/complex_model_sensitivity.exe
+*.exe
