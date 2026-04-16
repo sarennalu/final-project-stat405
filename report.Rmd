@@ -288,9 +288,13 @@ $L(a): = \mathbb{E}(L(a,X)) = 1.610375\mathbb{I}(a=1) + 0.1948\mathbb{I}(a = 0)$
 ## Limitations and Implication of Results
 
 Our analysis has a few limitations. Firstly, we did not have a lot of data on the classes 0.5 and 1 and no data for diagnosis levels above that. Since CDR is an ordinal scale ranging from 0 to 3, restricting our outcome to three values means we cannot conclude whether our model is appropriately specified when considering the entire range of CDR scores.
-Secondly, as undergraduate students with a limited understanding of medical sciences, we only analysed whether the main effects of the variables were in a particular direction rather than whether they exceeded a clinically important threshold. A more comprehensive analysis would incorporate such thresholds into the decision framework. Moreover, our loss functions were not based on scientific findings but on our own understanding of the problem, meaning the asymmetry between false positive and false negative costs was not clinically justified.
-Finally, diseases are usually caused by a complex interaction of many variables. Our choice to include only one interaction term — brain volume and education — and to assume linear effects of continuous predictors means other sources of misspecification may be present
 
+Secondly, as undergraduate students with a limited understanding of medical sciences, we only analysed whether the main effects of the variables were in a particular direction rather than whether they exceeded a clinically important threshold. A more comprehensive analysis would incorporate such thresholds into the decision framework. Moreover, our loss functions were not based on scientific findings but on our own understanding of the problem, meaning the asymmetry between false positive and false negative costs was not clinically justified.
+Finally, diseases are usually caused by a complex interaction of many variables. Our choice to include only one interaction term ( brain volume and education) and to assume linear effects of continuous predictors means other sources of misspecification may be present. Like many studies using the OASIS dataset, our results are merely generating hypothesis that would have to be validated in longitudinal studies.
+
+Our conclusion that brain volume is associated with higher CDR scores reinforces its importance as a clinical tool for diagnosing patients and matches the widespread biological literature on this topic.
+
+The finding that males are at a higher risk of dementia keeping age, brain volume and education could provide a new angle to the relationship between sex and dementia. However, this should be interpreted cautiously as it contradicts the general belief that women are at higher risk. This may be because our coefficients are conditioned on other variables rather than absolute effects of the sex variable. Lastly our analysis did not support the belief that higher education can help reduce the severity of dementia symptoms. 
 
 
 # Appendix
