@@ -78,11 +78,7 @@ In addition, we will assess the posterior predictive probabilities for our model
 
 Neuroimaging studies show that brain volume decreases with age and more rapidly in individuals with AD, reflecting disease-related neurodegeneration. These structural changes are closely associated with clinical measures such as the Clinical Dementia Rating (CDR) and Mini-Mental State Examination (MMSE).
 
-A widely used dataset for studying these relationships is the Open Access Series of Imaging Studies (OASIS) (Marcus et al., 2007), which combines MRI-derived brain measures with demographic and clinical variables. Key variables include age, sex, education, and imaging measures such as estimated total intracranial volume (eTIV) and normalized whole brain volume (nWBV).
-
-Among these, nWBV captures brain atrophy, while eTIV serves as a scaling measure for head size. Clinical variables such as CDR and MMSE quantify disease severity, and factors like socioeconomic status (SES) and education reflect social and cognitive influences on disease risk.
-
-Previous studies using OASIS and related datasets have identified strong associations between brain atrophy and Alzheimer’s disease severity (Fotenos et al., 2005; Buckner et al., 2004). In addition, machine learning approaches such as support vector machines (Klöppel et al., 2008) and deep learning models (Suk et al., 2014) have achieved high predictive accuracy using imaging features. However, these methods often prioritize prediction over interpretability and provide limited uncertainty quantification.
+A widely used dataset for studying these relationships is the Open Access Series of Imaging Studies (OASIS) (Marcus et al., 2007), which combines MRI-derived brain measures with demographic and clinical variables. Key variables include age, sex, education, and imaging measures such as estimated total intracranial volume (eTIV) and normalized whole brain volume (nWBV). Previous studies using OASIS and related datasets have identified strong associations between brain atrophy and Alzheimer’s disease severity (Fotenos et al., 2005; Buckner et al., 2004). In addition, machine learning approaches such as support vector machines (Klöppel et al., 2008) and deep learning models (Suk et al., 2014) have achieved high predictive accuracy using imaging features. However, these methods often prioritize prediction over interpretability and provide limited uncertainty quantification.
 
 Bayesian statistical methods offer a complementary framework by providing full posterior distributions of model parameters, enabling direct uncertainty quantification and incorporation of prior knowledge. This is particularly valuable in medical settings, where uncertainty is critical for decision-making.
 
@@ -173,15 +169,11 @@ include_graphics("plots/naive_model/calibration.png")
 ```
 As we can see, the model is only decently calibrated.
 
-```{r, out.width = "55%"}
-include_graphics("plots/naive_model/rank_hist.png")
-```
-All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
 
 ```{r, out.width = "60%"}
 include_graphics("plots/naive_model/trace_plot.png")
 ```
-All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. 
+All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. For the rank plots, see Appendix. 
 
 ```{r}
 loo_output <- readRDS("results/naive_model/loo_output.rds")
@@ -216,13 +208,6 @@ c1  <- rasterGrob(readPNG("plots/complex_model/calibration_class1.png"))
 grid.arrange(c0, c05, c1, ncol = 3)
 ```
 
-```{r, fig.width=10, fig.height=3.0}
-b1r <- rasterGrob(readPNG("plots/complex_model/beta1_rank.png"))
-b2r <- rasterGrob(readPNG("plots/complex_model/beta2_rank.png"))
-k0r <- rasterGrob(readPNG("plots/complex_model/k0_rank.png"))
-
-grid.arrange(b1r, b2r, k0r, ncol = 3)
-```
 
 ```{r, fig.width=10, fig.height=3.0}
 b1t  <- rasterGrob(readPNG("plots/complex_model/beta1_trace.png"))
@@ -231,6 +216,7 @@ k0t  <- rasterGrob(readPNG("plots/complex_model/k0_trace.png"))
 
 grid.arrange(b1t, b34t, k0t, ncol = 3)
 ```
+These plots demonstrate good mixing. For the rank plots, see Appendix. 
 
 ## Senstivity Analysis on the Complex Model
 ```{r, out.width = "45%"}
@@ -248,10 +234,9 @@ grid.arrange(b3d, b34d,ncol = 2)
 
 ## Results and Discussion
 
-We will now try to tackle some of the questions we were interested in using the complex model. From our EDA, it seemed that males had a greater chance of being diagnosed. We try to find if the coefficient of sex_male in our model greater than 0 using the following two ways:
+We will now try to tackle some of the questions we were interested in using the complex model. We try to find if the coefficient of sex_male in our model greater than 0 using the following two ways:
 
-1. *Posterior Probability*: We estimated $P(\beta_1 >0 | Data) = 0.726$. Additionally $\mathbb{E}(\beta_1 | Data) = 0.395$ and a 90% credible interval is $[-0.777,	1.577]$.
-We have some evidence that keeping the other variables constant, biological males usually have a higher CDR score than females.
+1. *Posterior Probability*: We estimated $P(\beta_1 >0 | Data) = 0.726$. Additionally $\mathbb{E}(\beta_1 | Data) = 0.395$ and a 90% credible interval is $[-0.777,	1.577]$. We have some evidence that keeping the other variables constant, biological males usually have a higher CDR score than females.
 
 2. *Decision Theory Framework*: We wish to make a decision whether $\beta_1 >0$. Let the action $a=1$ mean concluding that there is a positive slope $\beta_1$. Define the loss function:
 $$L(a, \beta_1) = 2 \mathbb{I}(a = 1, \beta_1 <0) + \mathbb{I}(a = 0, \beta>0)$$ where $a=1$ indicates that we claim the slope is $>0$. This loss function was chosen because we would like to penalise a false positive much more than a false negative. Using this loss function we estimate
@@ -267,7 +252,6 @@ Now, similarly to answer our second question we ask what is the probability of $
 | Low (-1) | -2.845 | (-5.015, -1.229) | 1.00 |
 | Mean (0) | -3.190 | (-5.355, -1.491) | 1.00 |
 | High (-1) | -3.534 | (-6.13, -1.565) | 1.00 |
-
 
 This gives strong evidence that that individuals with lower brain volume have higher CDR scores controlling for the other variables.  
 
@@ -291,24 +275,33 @@ Given good HMC convergence diagnostics, its broader posterior is more reliable. 
 
 ## Limitations and Implication of Results
 
-Our analysis has a few limitations. Firstly, we did not have a lot of data on the classes 0.5 and 1 and no data for diagnosis levels above that. Since CDR is an ordinal scale ranging from 0 to 3, restricting our outcome to three values means we cannot conclude whether our model is appropriately specified when considering the entire range of CDR scores.
+Our analysis has several limitations. We had limited data for CDR classes 0.5 and 1 and none above that, so we cannot conclude whether our model is appropriately specified across the full CDR range of 0–3. As undergraduates with limited medical knowledge, we assessed only the direction of main effects rather than clinically important thresholds, and our loss functions reflected our own assumptions rather than scientific evidence. We also included only one interaction term and assumed linear effects for continuous predictors, leaving potential misspecification unaddressed. Like other studies using the OASIS dataset, our findings are hypothesis-generating and require validation through longitudinal research.
 
-Secondly, as undergraduate students with a limited understanding of medical sciences, we only analysed whether the main effects of the variables were in a particular direction rather than whether they exceeded a clinically important threshold. A more comprehensive analysis would incorporate such thresholds into the decision framework. Moreover, our loss functions were not based on scientific findings but on our own understanding of the problem, meaning the asymmetry between false positive and false negative costs was not clinically justified.
-Finally, diseases are usually caused by a complex interaction of many variables. Our choice to include only one interaction term ( brain volume and education) and to assume linear effects of continuous predictors means other sources of misspecification may be present. Like many studies using the OASIS dataset, our results are merely generating hypothesis that would have to be validated in longitudinal studies.
-
-Our conclusion that brain volume is associated with higher CDR scores reinforces its importance as a clinical tool for diagnosing patients and matches the widespread biological literature on this topic.
-
-The finding that males are at a higher risk of dementia keeping age, brain volume and education could provide a new angle to the relationship between sex and dementia. However, this should be interpreted cautiously as it contradicts the general belief that women are at higher risk. This may be because our coefficients are conditioned on other variables rather than absolute effects of the sex variable. Lastly our analysis did not support the belief that higher education can help reduce the severity of dementia symptoms. 
-
+Our results confirm that brain volume is positively associated with CDR scores, consistent with the broader biological literature. The finding that males face higher dementia risk (conditional on age, brain volume, and education) offers an interesting angle but should be interpreted cautiously, as it contradicts the general consensus that women are at greater risk. This discrepancy reflects the conditioned nature of our coefficients. Finally, we found no support for the protective effect of education on dementia severity.
 
 # Contributions of Each Group Member
 Each group member contributed roughly equally.  Michael wrote the literature review, performed the sensitivity analysis for both models, and the variational inference for the complex model.  Sachit wrote the problem formulation, primarily designed both models, and implemented the complex model, including the stan implementation, calibration checks, model diagnostics, evaluation of the posterior approximation, and the code correctness for both models.  Sarenna set up the repository/virtual environment, processing the raw data and the exploratory data analysis, and implementing the naive model, including the stan implementation, calibration checks, model diagnostics, evaluation of the posterior approximation, and the leave-one-out for both models.
 
-
 # Appendix
 
 ### Sources:
-https://www.alz.org/alzheimers-dementia/what-is-dementia \newline
-https://www.who.int/news-room/fact-sheets/detail/dementia \newline
+https://www.alz.org/alzheimers-dementia/what-is-dementia 
+https://www.who.int/news-room/fact-sheets/detail/dementia
 
 
+### Rank plots for Complex Model
+
+```{r, fig.width=10, fig.height=3.0}
+b1r <- rasterGrob(readPNG("plots/complex_model/beta1_rank.png"))
+b2r <- rasterGrob(readPNG("plots/complex_model/beta2_rank.png"))
+k0r <- rasterGrob(readPNG("plots/complex_model/k0_rank.png"))
+
+grid.arrange(b1r, b2r, k0r, ncol = 3)
+```
+
+### Rank plots for Naive Model 
+
+```{r, out.width = "55%"}
+include_graphics("plots/naive_model/rank_hist.png")
+```
+All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
