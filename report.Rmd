@@ -76,19 +76,17 @@ In addition, we will assess the posterior predictive probabilities for our model
 
 # Literature Review
 
-Alzheimer’s disease (AD) is a progressive neurodegenerative disorder characterized by cognitive decline and structural brain atrophy. Neuroimaging studies have consistently shown that reductions in brain volume are strongly associated with both aging and Alzheimer’s disease severity. In particular, whole brain volume is known to decline gradually with age and more rapidly in individuals with Alzheimer’s disease, reflecting disease-related neurodegeneration.  These structural changes are closely linked to clinical measures such as the CDR and MMSE.
+Alzheimer’s disease (AD) is a progressive neurodegenerative disorder characterized by cognitive decline and brain atrophy. Neuroimaging studies show that brain volume decreases with age and more rapidly in individuals with AD, reflecting disease-related neurodegeneration. These structural changes are closely associated with clinical measures such as the Clinical Dementia Rating (CDR) and Mini-Mental State Examination (MMSE).
 
-A widely used dataset for studying these relationships is the Open Access Series of Imaging Studies (OASIS), introduced by Marcus et al. (2007). This dataset combines MRI-derived brain measurements with demographic and clinical variables, making it particularly suitable for statistical modeling of Alzheimer’s disease. Key variables include age, biological sex (M/F), Educ, as well as brain imaging measures such as eTIV and nWBV.
+A widely used dataset for studying these relationships is the Open Access Series of Imaging Studies (OASIS) (Marcus et al., 2007), which combines MRI-derived brain measures with demographic and clinical variables. Key variables include age, sex, education, and imaging measures such as estimated total intracranial volume (eTIV) and normalized whole brain volume (nWBV).
 
-Among these, nWBV is of particular importance as it provides a normalized measure of brain volume that captures atrophy, while eTIV reflects head size and serves as a scaling factor. Clinical variables such as CDR and MMSE provide complementary measures of disease presence and severity. Socioeconomic status (SES) and education level are also important covariates, as they capture social and cognitive factors that may influence disease risk and progression.
+Among these, nWBV captures brain atrophy, while eTIV serves as a scaling measure for head size. Clinical variables such as CDR and MMSE quantify disease severity, and factors like socioeconomic status (SES) and education reflect social and cognitive influences on disease risk.
 
-Previous studies using the OASIS dataset and similar neuroimaging data have primarily focused on identifying associations between brain structure and cognitive decline. For example, Fotenos et al. (2005) and Buckner et al. (2004) demonstrated strong relationships between brain atrophy and Alzheimer’s disease severity. In addition, a large body of work has applied machine learning techniques to predict Alzheimer’s disease from MRI data. Methods such as support vector machines (Klöppel et al., 2008) and deep learning models (Suk et al., 2014) achieve high classification accuracy by leveraging imaging features such as brain volume. However, these approaches typically emphasize predictive performance and often provide limited interpretability or uncertainty quantification.
+Previous studies using OASIS and related datasets have identified strong associations between brain atrophy and Alzheimer’s disease severity (Fotenos et al., 2005; Buckner et al., 2004). In addition, machine learning approaches such as support vector machines (Klöppel et al., 2008) and deep learning models (Suk et al., 2014) have achieved high predictive accuracy using imaging features. However, these methods often prioritize prediction over interpretability and provide limited uncertainty quantification.
 
-In contrast, Bayesian statistical methods offer a principled framework for modeling uncertainty and incorporating prior knowledge in the analysis of complex biomedical data. Rather than producing point estimates, Bayesian approaches yield full posterior distributions for model parameters, allowing researchers to quantify uncertainty through credible intervals and probabilistic statements. This is particularly valuable in medical contexts, where uncertainty plays a critical role in decision-making.
+Bayesian statistical methods offer a complementary framework by providing full posterior distributions of model parameters, enabling direct uncertainty quantification and incorporation of prior knowledge. This is particularly valuable in medical settings, where uncertainty is critical for decision-making.
 
-Bayesian methods have been successfully applied in Alzheimer’s research to model disease progression and cognitive decline. For instance, Fonteijn et al. (2012) introduced a Bayesian event-based model to characterize the progression of Alzheimer’s disease as a sequence of latent events, while Donohue et al. (2014) used Bayesian hierarchical models to analyze longitudinal cognitive data (different datasets). These approaches demonstrate the flexibility of Bayesian modeling in capturing complex relationships and latent structures in neurodegenerative diseases.
-
-Despite these advantages, Bayesian approaches have been relatively underutilized in studies based on the OASIS dataset, where most analyses rely on frequentist regression or machine learning techniques.
+Bayesian approaches have been applied to Alzheimer’s research to model disease progression and cognitive decline. For example, Fonteijn et al. (2012) proposed an event-based model describing disease progression as a sequence of latent events, while Donohue et al. (2014) used hierarchical models for longitudinal cognitive data. Despite these advantages, Bayesian methods remain relatively underutilized in analyses of the OASIS dataset, where most studies rely on frequentist or machine learning approaches.
 
 ## Summary
 
@@ -253,9 +251,6 @@ c1  <- rasterGrob(readPNG("plots/complex_model/calibration_class1.png"))
 
 grid.arrange(c0, c05, c1, ncol = 3)
 ```
-
-
-
 ```{r, fig.width=10, fig.height=3.8}
 b1r <- rasterGrob(readPNG("plots/complex_model/beta1_rank.png"))
 b2r <- rasterGrob(readPNG("plots/complex_model/beta2_rank.png"))
@@ -263,7 +258,6 @@ k0r <- rasterGrob(readPNG("plots/complex_model/k0_rank.png"))
 
 grid.arrange(b1r, b2r, k0r, ncol = 3)
 ```
-
 ```{r, fig.width=10, fig.height=3.8}
 b1t  <- rasterGrob(readPNG("plots/complex_model/beta1_trace.png"))
 b34t <- rasterGrob(readPNG("plots/complex_model/beta34_trace.png"))
