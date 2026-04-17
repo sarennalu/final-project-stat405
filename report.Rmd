@@ -55,13 +55,13 @@ i) **How are brain volume, age and biological sex associated with the probabilit
 \normalsize
 Any score \(> 0\) indicates probable AD, making CDR both a diagnostic and severity measure.
 
-**MMSE: (Mini-Mental State Examination score)** This is a brief test of global cognitive function, with the following scores describing the severity of cognitive decline. \newline
+**MMSE: (Mini-Mental State Examination score)** A brief test of global cognitive function, with the following scores describing the severity of cognitive decline. \newline
 \small
 24--30: Normal \quad 19--23: Mild \quad 10--18: Moderate \quad 0--9: Severe
 
 **eTIV (estimated total intracranial volume)** Estimated total volume inside skull, estimated from MRI results. 
 
-**nWBV (normalized whole-brain volume)**  This is the proportion of the intracranial cavity occupied by brain tissue. A lower volume would indicate more brain atrophy. Normalization ensures that differences in nWBV correspond to brain atrophy instead of differences in head size.  We are interested in this variable because brain atrophy is a key characteristic of Alzheimer’s disease progression. 
+**nWBV (normalized whole-brain volume)**  Proportion of the intracranial cavity occupied by brain tissue. A lower volume would indicate more brain atrophy. We are interested in this variable because brain atrophy is a key characteristic of Alzheimer’s disease progression. 
 
 **Educ (Education Level)** describes an individual’s highest level of education: \newline
 \small 
@@ -70,7 +70,7 @@ Any score \(> 0\) indicates probable AD, making CDR both a diagnostic and severi
 
 ## Key Modelling Challenges:
 
-The key modelling challenge is that the response variable, CDR, is an ordinal variable, with higher values indicating higher disease severity. An ideal Bayesian model using our dataset has to take into account the structure of the categories. We will begin with naive models treating CDR as a binary random variable or as an unordered categorical variable. Then we would build upon these with a more sophisticated model to include the ordering. This is grounded in the framework of progressively increasing model complexity, as often done in the course. 
+The key modelling challenge is that the response variable, CDR, is an ordinal variable, with higher values indicating higher disease severity. We will begin with naive models treating CDR as a binary random variable. Then we would build upon this with a more sophisticated model to include the ordering. This is grounded in the framework of progressively increasing model complexity, as often done in the course. 
 
 In addition, we will assess the posterior predictive probabilities for our model through cross-validation, a tool that we were introduced to in the course. We will apply concepts from the theme of Bayesian calibration in this section. 
 
@@ -113,49 +113,33 @@ From the plot above, it appears diagnosed patients typically have less whole bra
 
 # Models
 
+We build the following two models for our data. For the priors, standard deviations of the normal distributions have been kept small keeping in mind that covariates will be standardised. 
 \subsection*{Naive Bayesian Logistic Regression Model}
 
-\paragraph{Priors}
 \begin{align*}
 \beta_j &\sim \mathcal{N}(0, 3), \quad \text{for } j \in \{0,1,2,3,4,43\}.
 \end{align*}
-
-\paragraph{Linear Predictor}
 \begin{align*}
 \eta_i &= 
 \beta_0 
 + \beta_1 \cdot \text{sex}_{i,\text{male}} 
 + \beta_2 \cdot \text{age}_i 
-+ \beta_3 \cdot \text{brain\_vol}_i 
-+ \beta_4 \cdot \text{educ}_i \\ 
-&\quad + \beta_{34} \cdot (\text{brain\_vol}_i \times \text{educ}_i).
++ \beta_3 \cdot \text{brain\_vol}_i + \beta_4 \cdot \text{educ}_i \\ 
+&\quad + \beta_{34} \cdot (\text{brain\_vol}_i \times \text{educ}_i).\\
 \end{align*}
-
-\paragraph{Link Function}
 \begin{align*}
-\theta_i &= logistic(\eta_i)
-\end{align*}
-
-\paragraph{Likelihood}
-\begin{align*}
-\text{CDR\_binary}_i \mid \theta_i \sim \text{Bernoulli}(\theta_i).
+\text{CDR\_binary}_i \mid \eta_i \sim \text{Bernoulli}(logistic(\eta_i)).
 \end{align*}
 
 \subsection*{Complex Model}
 
 Note that we have set $\beta_0 = 1$ for identifiability
-
-\paragraph{Priors}
-
 \begin{align*}
 \beta_j &\sim \mathcal{N}(0,2) \quad (j = 1, 2, 3 ,34) \\ 
 \delta &\sim \text{Exp}\left(0.3\right) \\ 
 k_0 &\sim \mathcal{N}(0,1), \quad k_1 = k_0 + \delta \\ 
 \sigma &\sim \text{Exponential}(0.3)
 \end{align*}
-
-
-\paragraph{Likelihood}
 
 \paragraph{Hidden Disease Severity Score}
 \begin{align*}
@@ -166,13 +150,7 @@ k_0 &\sim \mathcal{N}(0,1), \quad k_1 = k_0 + \delta \\
 + \beta_4 \, \text{educ}_i \\ 
 &\quad + \beta_{3,4} \, (\text{brain\_vol}_i \times \text{educ}_i)
 \end{align*}
-
-
-
-\begin{align*}
-Z_i \mid \mu(i) &\sim \mathcal{N}(\mu(i), \sigma)
-\end{align*}
-
+$$Z_i \mid \mu(i) \sim \mathcal{N}(\mu(i), \sigma)$$
 \paragraph{Disease Outcome}
 \[
 Y_i \mid Z_i =
@@ -182,7 +160,6 @@ Y_i \mid Z_i =
 1 & \text{if } Z_i > k_1
 \end{cases}
 \]
-
 
 # Implementation of the Naive Model
 
@@ -225,7 +202,8 @@ include_graphics("plots/naive_model/posterior_medians.png")
 ```
 
 # Implementation of the Complex Model
-After fitting, we inspect the quality of the fit and calibration of the model.
+We now implement the complex model using STAN, once using its default algorithm and once using Variational Inference. 
+After fitting using STAN's default algorithm (NUTS), we inspect the quality of the fit and calibration of the model.
 
 ```{r}
 fit_sum <- read.csv("results/complex_model/fit_summary.csv")
@@ -273,26 +251,19 @@ grid.arrange(b3d, b34d,ncol = 2)
 
 ## Results and Discussion
 
-We will now try to tackle some of the questions we were interested in using the ordinal model we introduced.  From our exploratory analysis, it seemed that males had a greater chance of being diagnosed. We now try to frame this in terms of the query "Is the coefficient of sex_male in our model greater than 0?. We try to answer this in two ways:
+We will now try to tackle some of the questions we were interested in using the complex model. From our EDA, it seemed that males had a greater chance of being diagnosed. We try to find if the coefficient of sex_male in our model greater than 0 using the following two ways:
 
-
-1. *Posterior Probability*: We estimated
-- $P(\beta_1 >0 | Data) = 0.726$: The posterior probability of $\beta_1 >0$ in the complex model was $0.726$. 
-- $\mathbb{E}(\beta_1 | Data) = 0.395$ and a 90% credible interval is
-$[-0.777,	1.577]$.
-
-From these results, it seems that we have some evidence that keeping the other variables constant, biological males usually have a higher CDR score than females. We now approach this question from a decision theory standpoint.
+1. *Posterior Probability*: We estimated $P(\beta_1 >0 | Data) = 0.726$. Additionally $\mathbb{E}(\beta_1 | Data) = 0.395$ and a 90% credible interval is $[-0.777,	1.577]$.
+We have some evidence that keeping the other variables constant, biological males usually have a higher CDR score than females.
 
 2. *Decision Theory Framework*: We wish to make a decision whether $\beta_1 >0$. Let the action $a=1$ mean concluding that there is a positive slope $\beta_1$. Define the loss function:
-
 $$L(a, \beta_1) = 2 \mathbb{I}(a = 1, \beta_1 <0) + \mathbb{I}(a = 0, \beta>0)$$ where $a=1$ indicates that we claim the slope is $>0$. This loss function was chosen because we would like to penalise a false positive much more than a false negative. Using this loss function we estimate
 
 $L(a): = \mathbb{E}(L(a,X)) = 0.548\mathbb{I}(a=1) + 0.726\mathbb{I}(a = 0)$.
 
-Using this framework, under this loss function, an optimal decision would be to conclude that the sex_male effect is positive.
+Hence, under this loss function, an optimal decision would be to conclude that the sex_male effect is positive.
 
-Now, similarly to answer our second and third questions we pose the query:
-What is the probability of $\beta_3 + \beta_{34}educ_{i} < 0$? Using three different level of standardized education levels $(-1, 0, 1)$, we found that for each of the three levels, the posterior probability $Pr(\beta_3 + \beta_{34}*educ_{i} < 0|Data) \approx 1$. This table summarises the posterior means and credible intervals
+Now, similarly to answer our second question we ask what is the probability of $\beta_3 + \beta_{34}educ_{i} < 0$? Using three different level of standardized education levels $(-1, 0, 1)$, we found that for each of the three levels, the posterior probability $Pr(\beta_3 + \beta_{34}*educ_{i} < 0|Data) \approx 1$. This table summarises the posterior means and credible intervals
 
 | Education Level | Posterior Mean of Brain Volume Effect | 95% CrI | P(effect < 0) |
 |---|---|---|---|
@@ -301,12 +272,11 @@ What is the probability of $\beta_3 + \beta_{34}educ_{i} < 0$? Using three diffe
 | High (-1) | -3.534 | (-6.13, -1.565) | 1.00 |
 
 
-This gives strong evidence that that individuals with lower brain volume have higher CDR scores controlling for the other variables. Since the evidence is so overwhelming, we do not treat this with a decision theoretic framework. 
+This gives strong evidence that that individuals with lower brain volume have higher CDR scores controlling for the other variables.  
 
 To answer our final question, we need to ask whether the interaction term in our complex model $\beta_{34}$ is greater than 0. A positive term would mean that at higher education levels the effect of reducing brain volume on the severity of the disease is smaller.
 
-1. *Posterior Probability*: We found
-- $Pr(\beta_{34}> 0|Data) \approx 0.1948125$, which is very small and incdicates we are not very certain that this coefficient is positive. 
+1. *Posterior Probability*: We found $Pr(\beta_{34}> 0|Data) \approx 0.1948125$, which is very small and incdicates we are not very certain that this coefficient is positive.
 
 2. *Decision Theory Framework*: Using the same loss function and actions as before, we calculated
 $L(a): = \mathbb{E}(L(a,X)) = 1.610375\mathbb{I}(a=1) + 0.1948\mathbb{I}(a = 0)$, so the Bayes estimator would be to conclude that there isn't a dampening effect of education. 
