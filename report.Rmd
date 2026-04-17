@@ -4,9 +4,9 @@ output: pdf_document
 header-includes:
   - \usepackage{float}
   - \usepackage{titlesec}
-  - \setlength{\textfloatsep}{8pt}
-  - \setlength{\floatsep}{8pt}
-  - \setlength{\intextsep}{8pt}
+  - \setlength{\textfloatsep}{0pt}
+  - \setlength{\floatsep}{0pt}
+  - \setlength{\intextsep}{0pt}
   - \titlespacing*{\section}{0pt}{1.2ex plus .2ex minus .2ex}{0.8ex}
   - \titlespacing*{\subsection}{0pt}{1ex plus .2ex minus .2ex}{0.6ex}
 ---
@@ -198,12 +198,12 @@ include_graphics("plots/naive_model/calibration.png")
 ```
 As we can see, the model is only decently calibrated.
 
-```{r, out.width = "65%"}
+```{r, out.width = "55%"}
 include_graphics("plots/naive_model/rank_hist.png")
 ```
 All of the histograms look roughly flat for all 4 chains for the parameters displayed.  This is an indication of good mixing.
 
-```{r, out.width = "80%"}
+```{r, out.width = "60%"}
 include_graphics("plots/naive_model/trace_plot.png")
 ```
 All 4 chains have plenty of overlap, and don't appear to be stuck at any point.  This demonstrates good mixing for all of the priors shown. 
@@ -219,21 +219,9 @@ The Pareto k estimates tell us that there are no outliers influencing the model.
 The model is assigning 57.3% probability to the correct outcome (correct class of dementia diagnosis) on average for the leave-one-out predictions.  
 
 ## Sensitivity Analysis for Naive Model
-```{r, echo=FALSE, fig.width=8, fig.height=4.8}
-library(gridExtra)
-library(png)
-library(grid)
 
-pb3 <- rasterGrob(readPNG("plots/naive_model/posterior_beta3.png"))
-pb4 <- rasterGrob(readPNG("plots/naive_model/posterior_beta34.png"))
-pm  <- rasterGrob(readPNG("plots/naive_model/posterior_medians.png"))
-
-grid.arrange(
-  arrangeGrob(pb3, pb4, ncol = 2),
-  pm,
-  ncol = 1,
-  heights = c(1, 1.1)
-)
+```{r, out.width = "55%"}
+include_graphics("plots/naive_model/posterior_medians.png")
 ```
 
 # Implementation of the Complex Model
@@ -251,14 +239,16 @@ c1  <- rasterGrob(readPNG("plots/complex_model/calibration_class1.png"))
 
 grid.arrange(c0, c05, c1, ncol = 3)
 ```
-```{r, fig.width=10, fig.height=3.8}
+
+```{r, fig.width=10, fig.height=3.0}
 b1r <- rasterGrob(readPNG("plots/complex_model/beta1_rank.png"))
 b2r <- rasterGrob(readPNG("plots/complex_model/beta2_rank.png"))
 k0r <- rasterGrob(readPNG("plots/complex_model/k0_rank.png"))
 
 grid.arrange(b1r, b2r, k0r, ncol = 3)
 ```
-```{r, fig.width=10, fig.height=3.8}
+
+```{r, fig.width=10, fig.height=3.0}
 b1t  <- rasterGrob(readPNG("plots/complex_model/beta1_trace.png"))
 b34t <- rasterGrob(readPNG("plots/complex_model/beta34_trace.png"))
 k0t  <- rasterGrob(readPNG("plots/complex_model/k0_trace.png"))
@@ -267,18 +257,17 @@ grid.arrange(b1t, b34t, k0t, ncol = 3)
 ```
 
 ## Senstivity Analysis on the Complex Model
-```{r, echo=FALSE, fig.width=8, fig.height=5}
+```{r, out.width = "45%"}
+include_graphics("plots/complex_model/cred_interval_hmc_vi.png")
+```
+
+## HMC vs VI on the Complex Model
+```{r, echo=FALSE, fig.width=8, fig.height=3.5}
 
 b3d  <- rasterGrob(readPNG("plots/complex_model/beta3_density_hmc_vi.png"))
 b34d <- rasterGrob(readPNG("plots/complex_model/beta34_density_hmc_vi.png"))
-cred <- rasterGrob(readPNG("plots/complex_model/cred_interval_hmc_vi.png"))
 
-grid.arrange(
-  b3d, b34d,
-  cred,
-  ncol = 2,
-  heights = c(1, 1.2)
-)
+grid.arrange(b3d, b34d,ncol = 2)
 ```
 
 
@@ -324,23 +313,14 @@ $L(a): = \mathbb{E}(L(a,X)) = 1.610375\mathbb{I}(a=1) + 0.1948\mathbb{I}(a = 0)$
 
 ### Prior Sensitivity Analysis
 
-We assessed robustness to prior choice by varying the prior variance for the regression coefficients.
-
-For the complex model, the posterior for the brain-volume effect $\beta_3$ was highly stable across priors. The posterior median changed only slightly, and the credible intervals remained clearly below zero, indicating that this effect is strongly informed by the data. The interaction term $\beta_{34}$ was also relatively stable, though its credible interval remained wider and closer to zero, suggesting weaker evidence.
-
-In contrast, the naive model showed greater sensitivity to prior choice. Both $\beta_3$ and $\beta_{34}$ shifted more noticeably as the prior variance increased, and their credible intervals widened. This indicates weaker identifiability and a stronger influence of the prior.
-
-Overall, the complex model provides more robust, data-driven inference, while the naive model is more sensitive to prior assumptions.
+We evaluated robustness to prior variance. In the complex model, the posterior for $\beta_3$ remained stable across priors, with consistently negative credible intervals, indicating strong data influence. The interaction term $\beta_{34}$ was also fairly stable but retained wider intervals, reflecting weaker evidence.
+In contrast, the naive model showed greater sensitivity: posterior estimates for $\beta_3$ and $\beta_{34}$ shifted more and had wider intervals under different priors, indicating weaker identifiability and stronger prior dependence.
+Overall, the complex model yields more robust, data-driven inference.
 
 ### Comparison of HMC and Variational Inference
+We compared HMC with mean-field VI for the complex model. For $\beta_3$, VI produced a narrower posterior, underestimating uncertainty due to its independence assumptions, though both methods agreed on a negative effect. For $\beta_{34}$, the two approaches produced similar results, suggesting it is easier to approximate.
 
-We compared HMC with mean-field variational inference (VI) for the complex model.
-
-For $\beta_3$, VI produced a noticeably narrower posterior than HMC, indicating underestimation of uncertainty. This is consistent with the limitations of mean-field VI, which cannot capture posterior dependence between parameters. Despite this, both methods agreed on the negative direction of the effect.
-
-For $\beta_{34}$, the HMC and VI posteriors were much more similar in both location and spread, suggesting that this parameter is easier to approximate with a factorized variational family.
-
-Since HMC diagnostics indicated good convergence, the broader HMC posterior should be considered more reliable. Thus, while VI recovers posterior means well, HMC provides more accurate uncertainty quantification.
+Given good HMC convergence diagnostics, its broader posterior is more reliable. VI captures posterior means well but underestimates uncertainty.
 
 ## Limitations and Implication of Results
 
