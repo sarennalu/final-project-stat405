@@ -37,6 +37,8 @@ library(png)
 library(grid)
 ```
 
+Michael Güntert, Sarenna Ulman, Sachit Sharma
+
 # Problem Formulation:
 Alzheimer's disease is a progressive neurodegenerative disorder and the most common cause of dementia, characterized by declining memory and cognition. Early detection through biomarkers and MRI data is critical, as delayed treatment is associated with worse outcomes. In this project, we investigate clinical risk factors associated with Alzheimer's disease using Bayesian Statistics, aiming to identify which groups of people are at higher risk and support early intervention.
 
