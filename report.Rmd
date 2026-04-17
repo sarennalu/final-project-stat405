@@ -76,7 +76,7 @@ In addition, we will assess the posterior predictive probabilities for our model
 
 # Literature Review
 
-Alzheimer’s disease (AD) is a progressive neurodegenerative disorder characterized by cognitive decline and brain atrophy. Neuroimaging studies show that brain volume decreases with age and more rapidly in individuals with AD, reflecting disease-related neurodegeneration. These structural changes are closely associated with clinical measures such as the Clinical Dementia Rating (CDR) and Mini-Mental State Examination (MMSE).
+Neuroimaging studies show that brain volume decreases with age and more rapidly in individuals with AD, reflecting disease-related neurodegeneration. These structural changes are closely associated with clinical measures such as the Clinical Dementia Rating (CDR) and Mini-Mental State Examination (MMSE).
 
 A widely used dataset for studying these relationships is the Open Access Series of Imaging Studies (OASIS) (Marcus et al., 2007), which combines MRI-derived brain measures with demographic and clinical variables. Key variables include age, sex, education, and imaging measures such as estimated total intracranial volume (eTIV) and normalized whole brain volume (nWBV).
 
@@ -88,9 +88,7 @@ Bayesian statistical methods offer a complementary framework by providing full p
 
 Bayesian approaches have been applied to Alzheimer’s research to model disease progression and cognitive decline. For example, Fonteijn et al. (2012) proposed an event-based model describing disease progression as a sequence of latent events, while Donohue et al. (2014) used hierarchical models for longitudinal cognitive data. Despite these advantages, Bayesian methods remain relatively underutilized in analyses of the OASIS dataset, where most studies rely on frequentist or machine learning approaches.
 
-## Summary
-
-Existing literature establishes strong links between brain atrophy, demographic factors, and Alzheimer’s disease. However, it largely relies on predictive or frequentist approaches. By adopting a Bayesian perspective, this study contributes to the literature by providing interpretable, uncertainty-aware estimates of how brain structure and clinical variables jointly influence Alzheimer’s disease risk and severity.
+In summary, by adopting a Bayesian perspective, this study contributes to the literature by providing interpretable, uncertainty-aware estimates of how brain structure and clinical variables jointly influence Alzheimer’s disease risk and severity.
 
 ## Exploratory Data Analysis
 First, we must explore the dataset's feature distributions before designing and fitting models.
@@ -244,7 +242,6 @@ include_graphics("plots/complex_model/cred_interval_hmc_vi.png")
 
 b3d  <- rasterGrob(readPNG("plots/complex_model/beta3_density_hmc_vi.png"))
 b34d <- rasterGrob(readPNG("plots/complex_model/beta34_density_hmc_vi.png"))
-
 grid.arrange(b3d, b34d,ncol = 2)
 ```
 
