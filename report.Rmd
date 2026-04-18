@@ -438,7 +438,7 @@ knitr::kable(sim)
 We can see that for each parameter of the model proportion of the times each it is in the 90% credible interval is roughly 90%, so this confirms that our code can work as intended. 
 
 ### Stan File for Complex Model: HMC and VI
-```{stan, eval = FALSE, echo = TRUE}
+```stan
   data {
   int N; 
   vector<lower=0, upper = 1>[N] y;
@@ -639,7 +639,7 @@ ggsave("../../plots/complex_model/beta34_density_hmc_vi.png", plot = p_beta34, w
 ```
 
 ### Sensitivity Analysis Naive Model
-```{r, eval = FALSE, echo = TRUE}
+```stan
 data {
   int<lower=1> N;
   vector[N] sex_male;
@@ -853,7 +853,7 @@ ggsave("../../plots/naive_model/posterior_medians.png")
 ```
 
 ### Sensitivity Analysis Complex Model
-```{stan, eval = FALSE, echo = TRUE}
+```stan
 data {
   int<lower=1> N;
   array[N] int<lower=1, upper=3> y_cat;
