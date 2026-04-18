@@ -437,3 +437,653 @@ knitr::kable(sim)
 ```
 We can see that for each parameter of the model proportion of the times each it is in the 90% credible interval is roughly 90%, so this confirms that our code can work as intended. 
 
+### Stan File for Complex Model: HMC and VI
+```stan
+  data {
+  int N; 
+  vector<lower=0, upper = 1>[N] y;
+  vector<lower = 0, upper =1>[N] sex;
+  vector[N] age; 
+  vector[N] brain_volume;
+  vector[N] educ;
+  vector[N] brain_educ;
+}
+
+parameters {
+  real beta1;
+  real beta2;
+  real beta3;
+  real beta4;
+  real beta34;
+  real k0;
+  real<lower = 0> delta;
+  real<lower = 0> sigma;
+}
+
+transformed parameters {
+  real beta0 = 0;
+  vector[N] mu = beta0 + beta1*sex + beta2*age 
+  + beta3*brain_volume + beta4*educ + beta34*brain_educ;
+  real k1 = k0 + delta;
+}
+
+model {
+  
+  // prior 
+  beta1 ~ normal(0,2);
+  beta2 ~ normal(0,2);
+  beta3 ~ normal(0,2);
+  beta4 ~ normal(0,2);
+  beta34 ~ normal(0,2);
+  delta ~ exponential(0.3);
+  sigma ~ exponential(0.3);
+  k0 ~ normal(0,1);
+  
+  for (i in 1:N) {
+    if (y[i] == 0) {
+      target += normal_lcdf(k0| mu[i], sigma);
+    } else if (y[i] == 0.5) {
+    target += log_diff_exp(
+                normal_lcdf(k1 | mu[i], sigma),
+                normal_lcdf(k0 | mu[i], sigma));
+    } else {
+      target += normal_lccdf(k1| mu[i], sigma);
+    }
+  } 
+}
+
+generated quantities {
+  vector[N] p0;
+  vector[N] p05;
+  vector[N] p1;
+  vector[N] log_lik;
+  
+  for (i in 1:N) {
+    p0[i] = normal_cdf(k0| mu[i], sigma);
+    p05[i] = normal_cdf(k1| mu[i], sigma) - normal_cdf(k0| mu[i], sigma);
+    p1[i] =  1- normal_cdf(k1|mu[i], sigma);
+    
+    if (y[i] == 0) {
+      log_lik[i] = normal_lcdf(k0 | mu[i], sigma);
+    } else if (y[i] == 0.5) {
+      log_lik[i] = log_diff_exp(
+        normal_lcdf(k1 | mu[i], sigma),
+        normal_lcdf(k0 | mu[i], sigma)
+      );
+    } else {
+      log_lik[i] = normal_lccdf(k1 | mu[i], sigma);
+    }
+  }
+}
+```
+
+### HMC vs VI implementation  
+```{r, eval = FALSE, echo = TRUE}
+data_processed <- read.csv("../../data/processed/oasis_processed.csv")
+
+data_processed <- data_processed |>
+  select(Age, Educ, nWBV, CDR, sex_male) |>
+  filter(
+    !is.na(Age),
+    !is.na(Educ),
+    !is.na(nWBV),
+    !is.na(CDR),
+    !is.na(sex_male)
+  )
+
+N <- nrow(data_processed)
+y <- data_processed$CDR
+age <- data_processed$Age
+sex <- data_processed$sex_male
+brain_volume <- data_processed$nWBV
+educ <- data_processed$Educ
+
+# Standardise continuous predictors
+age_z <- as.numeric(scale(age))
+brain_volume_z <- as.numeric(scale(brain_volume))
+educ_z <- as.numeric(scale(educ))
+brain_educ_z <- brain_volume_z * educ_z
+
+stan_data <- list(
+  N = N,
+  y = y,
+  sex = sex,
+  age = age_z,
+  brain_volume = brain_volume_z,
+  educ = educ_z,
+  brain_educ = brain_educ_z
+)
+
+mod <- cmdstan_model("complex_model.stan")
+fit_hmc = mod$sample(
+  seed =405,
+  chains = 4,
+  refresh = 1000,
+  data = stan_data,
+  iter_sampling = 4000,
+  show_messages = FALSE
+)
+
+fit_hmc$summary(c("beta1", "beta2", "beta3", "beta4", "beta34", "k0", "delta", "sigma"))
+
+fit_vi <- mod$variational(
+  data = stan_data,
+  seed = 405,
+  algorithm = "meanfield",
+  iter = 20000,
+  grad_samples = 1,
+  elbo_samples = 100,
+  output_samples = 4000,
+)
+
+fit_vi$summary(c("beta1", "beta2", "beta3", "beta4", "beta34", "k0", "delta", "sigma"))
+
+params <- c("beta1", "beta2", "beta3", "beta4", "beta34", "k0", "delta", "sigma")
+
+draws_hmc <- as_draws_df(fit_hmc$draws(params))
+draws_vi  <- as_draws_df(fit_vi$draws(params))
+
+make_summary <- function(draws_df, method_name, params) {
+  data.frame(
+    parameter = params,
+    mean = sapply(params, function(p) mean(draws_df[[p]])),
+    median = sapply(params, function(p) median(draws_df[[p]])),
+    sd = sapply(params, function(p) sd(draws_df[[p]])),
+    q2.5 = sapply(params, function(p) quantile(draws_df[[p]], 0.025)),
+    q97.5 = sapply(params, function(p) quantile(draws_df[[p]], 0.975)),
+    prob_negative = sapply(params, function(p) mean(draws_df[[p]] < 0)),
+    method = method_name
+  )
+}
+
+summary_comparison <- rbind(
+  make_summary(draws_hmc, "HMC", params),
+  make_summary(draws_vi, "VI meanfield", params)
+)
+
+summary_comparison
+
+plot_df_beta3 <- rbind(
+  data.frame(value = draws_hmc$beta3, method = "HMC"),
+  data.frame(value = draws_vi$beta3, method = "VI meanfield")
+)
+
+p_beta3 <- ggplot(plot_df_beta3, aes(x = value, colour = method)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior comparison for beta3",
+    x = expression(beta[3]),
+    y = "Density"
+  )
+
+p_beta3
+
+ggsave("../../plots/complex_model/beta3_density_hmc_vi.png", plot = p_beta3, width = 6, height = 4, dpi = 300)
+
+plot_df_beta34 <- rbind(
+  data.frame(value = draws_hmc$beta34, method = "HMC"),
+  data.frame(value = draws_vi$beta34, method = "VI meanfield")
+)
+
+p_beta34 <- ggplot(plot_df_beta34, aes(x = value, colour = method)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior comparison for beta34",
+    x = expression(beta[34]),
+    y = "Density"
+  )
+
+p_beta34
+
+ggsave("../../plots/complex_model/beta34_density_hmc_vi.png", plot = p_beta34, width = 6, height = 4, dpi = 300)
+```
+
+### Sensitivity Analysis Naive Model
+```stan
+data {
+  int<lower=1> N;
+  vector[N] sex_male;
+  vector[N] age;
+  vector[N] brain_vol;
+  vector[N] educ;
+  array[N] int<lower=0, upper=1> CDR_binary;
+
+  real<lower=0> prior_sd;       // slope prior sd
+  real<lower=0> intercept_sd;   // intercept prior sd
+}
+
+transformed data {
+  vector[N] brain_educ = brain_vol .* educ;
+}
+
+parameters {
+  real beta_0;
+  real beta_1;
+  real beta_2;
+  real beta_3;
+  real beta_4;
+  real beta_34;
+}
+
+transformed parameters {
+  vector[N] eta;
+  vector[N] theta;
+
+  eta = beta_0
+      + beta_1 * sex_male
+      + beta_2 * age
+      + beta_3 * brain_vol
+      + beta_4 * educ
+      + beta_34 * brain_educ;
+
+  theta = inv_logit(eta);
+}
+
+model {
+  // Priors
+  beta_0  ~ normal(0, intercept_sd);
+  beta_1  ~ normal(0, prior_sd);
+  beta_2  ~ normal(0, prior_sd);
+  beta_3  ~ normal(0, prior_sd);
+  beta_4  ~ normal(0, prior_sd);
+  beta_34 ~ normal(0, prior_sd);
+
+  // Likelihood
+  CDR_binary ~ bernoulli(theta);
+}
+
+generated quantities {
+  vector[N] log_lik;
+  vector[N] p_pred;
+  array[N] int y_pred;
+
+  for (i in 1:N) {
+    p_pred[i] = theta[i];
+    y_pred[i] = bernoulli_rng(p_pred[i]);
+    log_lik[i] = bernoulli_lpmf(CDR_binary[i] | theta[i]);
+  }
+}
+```
+
+```{r, eval = FALSE, echo = TRUE}
+data_processed <- read.csv("../../data/processed/oasis_processed.csv")
+
+data <- data_processed %>%
+  select(sex_male, Age, nWBV, Educ, CDR_binary) %>%
+  filter(
+    Educ > 1,
+    Educ < 5,
+    Age > 0,
+    nWBV > 0,
+    sex_male %in% c(0, 1),
+    CDR_binary %in% c(0, 1)
+  ) %>%
+  mutate(
+    age_z = as.numeric(scale(Age)),
+    brain_vol_z = as.numeric(scale(nWBV)),
+    educ_z = as.numeric(scale(Educ))
+  )
+
+stan_data_base <- list(
+  N = nrow(data),
+  sex_male = data$sex_male,
+  age = data$age_z,
+  brain_vol = data$brain_vol_z,
+  educ = data$educ_z,
+  CDR_binary = data$CDR_binary
+)
+
+naive_model <- cmdstan_model("naive_model_sensitivity.stan")
+
+prior_grid <- tibble(
+  prior = c("N(0, 0.5)", "N(0, 1)", "N(0, 3)"),
+  prior_sd = c(0.5, 1.0, 3.0),
+  intercept_sd = c(2.0, 2.0, 3.0)
+)
+
+fit_one_model <- function(prior_sd, intercept_sd, prior) {
+  fit <- naive_model$sample(
+    seed = 405,
+    chains = 4,
+    parallel_chains = 4,
+    iter_sampling = 2500,
+    show_messages = FALSE,
+    data = c(
+      stan_data_base,
+      list(prior_sd = prior_sd, intercept_sd = intercept_sd)
+    )
+  )
+
+  list(prior = prior, fit = fit)
+}
+
+fit_list <- pmap(prior_grid, fit_one_model)
+names(fit_list) <- prior_grid$prior
+
+params <- c("beta_0", "beta_1", "beta_2", "beta_3", "beta_4", "beta_34")
+
+extract_summary <- function(fit_obj, prior_name) {
+  draws <- as_draws_df(fit_obj$draws(params))
+
+  tibble(
+    parameter = params,
+    mean = sapply(params, function(p) mean(draws[[p]])),
+    median = sapply(params, function(p) median(draws[[p]])),
+    sd = sapply(params, function(p) sd(draws[[p]])),
+    q2.5 = sapply(params, function(p) quantile(draws[[p]], 0.025)),
+    q97.5 = sapply(params, function(p) quantile(draws[[p]], 0.975)),
+    prob_negative = sapply(params, function(p) mean(draws[[p]] < 0)),
+    prior = prior_name
+  )
+}
+
+summary_table <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  ~ extract_summary(.x$fit, .y)
+)
+
+summary_table %>% arrange(parameter, prior)
+
+diagnostic_table <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    x$fit$summary(params) %>%
+      as_tibble() %>%
+      mutate(prior = nm) %>%
+      select(prior, variable, mean, sd, q5, q95, rhat, ess_bulk, ess_tail)
+  }
+)
+
+diagnostic_table
+
+posterior_beta3 <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    draws <- as_draws_df(x$fit$draws("beta_3"))
+    tibble(value = draws$beta_3, prior = nm)
+  }
+)
+
+ggplot(posterior_beta3, aes(x = value, color = prior)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior density of brain-volume effect across priors",
+    x = expression(beta[3]),
+    y = "Density",
+    color = "Prior"
+  )
+ggsave("../../plots/naive_model/posterior_beta3.png")
+
+posterior_beta34 <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    draws <- as_draws_df(x$fit$draws("beta_34"))
+    tibble(value = draws$beta_34, prior = nm)
+  }
+)
+
+ggplot(posterior_beta34, aes(x = value, color = prior)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior density of interaction effect across priors",
+    x = expression(beta[34]),
+    y = "Density",
+    color = "Prior"
+  )
+ggsave("../../plots/naive_model/posterior_beta34.png")
+
+interval_plot_data <- summary_table %>%
+  filter(parameter %in% c("beta_3", "beta_34"))
+
+ggplot(interval_plot_data,
+       aes(x = prior, y = median, ymin = q2.5, ymax = q97.5)) +
+  geom_pointrange() +
+  facet_wrap(~ parameter, scales = "free_y") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Posterior medians and 95% credible intervals across priors",
+    x = "Prior",
+    y = "Posterior estimate"
+  )
+ggsave("../../plots/naive_model/posterior_medians.png")
+```
+
+### Sensitivity Analysis Complex Model
+```stan
+data {
+  int<lower=1> N;
+  array[N] int<lower=1, upper=3> y_cat;
+
+  vector[N] sex;
+  vector[N] age;
+  vector[N] brain_volume;
+  vector[N] educ;
+  vector[N] brain_educ;
+
+  real<lower=0> beta_sd;
+  real<lower=0> c1_sd;
+  real<lower=0> delta_rate;
+}
+
+parameters {
+  real beta1;
+  real beta2;
+  real beta3;
+  real beta4;
+  real beta34;
+
+  real c1;
+  real<lower=0> delta;
+}
+
+transformed parameters {
+  vector[N] eta;
+  real c2;
+
+  eta = beta1 * sex
+      + beta2 * age
+      + beta3 * brain_volume
+      + beta4 * educ
+      + beta34 * brain_educ;
+
+  c2 = c1 + delta;
+}
+
+model {
+  beta1  ~ normal(0, beta_sd);
+  beta2  ~ normal(0, beta_sd);
+  beta3  ~ normal(0, beta_sd);
+  beta4  ~ normal(0, beta_sd);
+  beta34 ~ normal(0, beta_sd);
+
+  c1    ~ normal(0, c1_sd);
+  delta ~ exponential(delta_rate);
+
+  for (i in 1:N) {
+    if (y_cat[i] == 1) {
+      target += normal_lcdf(c1 | eta[i], 1);
+    } else if (y_cat[i] == 2) {
+      target += log_diff_exp(
+        normal_lcdf(c2 | eta[i], 1),
+        normal_lcdf(c1 | eta[i], 1)
+      );
+    } else {
+      target += normal_lccdf(c2 | eta[i], 1);
+    }
+  }
+}
+
+generated quantities {
+  vector[N] p1;
+  vector[N] p2;
+  vector[N] p3;
+  vector[N] log_lik;
+
+  for (i in 1:N) {
+    p1[i] = normal_cdf(c1 | eta[i], 1);
+    p2[i] = normal_cdf(c2 | eta[i], 1) - normal_cdf(c1 | eta[i], 1);
+    p3[i] = 1 - normal_cdf(c2 | eta[i], 1);
+
+    if (y_cat[i] == 1) {
+      log_lik[i] = normal_lcdf(c1 | eta[i], 1);
+    } else if (y_cat[i] == 2) {
+      log_lik[i] = log_diff_exp(
+        normal_lcdf(c2 | eta[i], 1),
+        normal_lcdf(c1 | eta[i], 1)
+      );
+    } else {
+      log_lik[i] = normal_lccdf(c2 | eta[i], 1);
+    }
+  }
+}
+```
+
+```{r, eval = FALSE, echo = TRUE}
+data <- data_processed %>%
+  select(Age, Educ, nWBV, CDR, sex_male) %>%
+  filter(
+    !is.na(Age),
+    !is.na(Educ),
+    !is.na(nWBV),
+    !is.na(CDR),
+    !is.na(sex_male),
+    Age > 0,
+    nWBV > 0,
+    sex_male %in% c(0, 1),
+    CDR %in% c(0, 0.5, 1)
+  ) %>%
+  mutate(
+    age_z = as.numeric(scale(Age)),
+    brain_volume_z = as.numeric(scale(nWBV)),
+    educ_z = as.numeric(scale(Educ)),
+    brain_educ_z = brain_volume_z * educ_z,
+    y_cat = case_when(
+      CDR == 0   ~ 1L,
+      CDR == 0.5 ~ 2L,
+      CDR == 1   ~ 3L
+    )
+  )
+
+stan_data_base <- list(
+  N = nrow(data),
+  y_cat = data$y_cat,
+  sex = as.numeric(data$sex_male),
+  age = data$age_z,
+  brain_volume = data$brain_volume_z,
+  educ = data$educ_z,
+  brain_educ = data$brain_educ_z
+)
+
+mod <- cmdstan_model("complex_model_sensitivity.stan")
+
+prior_grid <- tibble(
+  prior = c("beta N(0, 0.5)", "beta N(0, 1)", "beta N(0, 2)"),
+  beta_sd = c(0.5, 1.0, 2.0),
+  c1_sd = c(1.0, 1.0, 1.0),
+  delta_rate = c(0.3, 0.3, 0.3)
+)
+
+fit_one_complex <- function(prior, beta_sd, c1_sd, delta_rate) {
+  fit <- mod$sample(
+    seed = 405,
+    chains = 4,
+    iter_sampling = 4000,
+    refresh = 1000,
+    show_messages = FALSE,
+    data = c(
+      stan_data_base,
+      list(
+        beta_sd = beta_sd,
+        c1_sd = c1_sd,
+        delta_rate = delta_rate
+      )
+    )
+  )
+
+  list(prior = prior, fit = fit)
+}
+
+fit_list <- pmap(prior_grid, fit_one_complex)
+names(fit_list) <- prior_grid$prior
+
+diagnostic_table <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    x$fit$summary(params) %>%
+      as_tibble() %>%
+      mutate(prior = nm) %>%
+      select(prior, variable, mean, sd, q5, q95, rhat, ess_bulk, ess_tail)
+  }
+)
+
+diagnostic_table
+
+posterior_beta3 <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    draws <- as_draws_df(x$fit$draws("beta3"))
+    tibble(value = draws$beta3, prior = nm)
+  }
+)
+
+posterior_beta3 <- ggplot(posterior_beta3, aes(x = value, color = prior)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior density of brain-volume effect across priors",
+    x = expression(beta[3]),
+    y = "Density",
+    color = "Prior"
+  )
+
+posterior_beta3
+
+ggsave("../../plots/plots_complex_model/posterior_beta3_sensitivity.png", plot = posterior_beta3, width = 6, height = 4, dpi = 300)
+
+posterior_beta34 <- map2_dfr(
+  fit_list,
+  names(fit_list),
+  function(x, nm) {
+    draws <- as_draws_df(x$fit$draws("beta34"))
+    tibble(value = draws$beta34, prior = nm)
+  }
+)
+
+posterior_beta34 <- ggplot(posterior_beta34, aes(x = value, color = prior)) +
+  geom_density(linewidth = 1) +
+  labs(
+    title = "Posterior density of interaction effect across priors",
+    x = "beta34",
+    y = "Density",
+    color = "Prior"
+  )
+
+posterior_beta34
+
+ggsave("../../plots/plots_complex_model/posterior_beta34_sensitivity.png", plot = posterior_beta3, width = 6, height = 4, dpi = 300)
+
+interval_plot_data <- summary_table %>%
+  filter(parameter %in% c("beta3", "beta34", "c1", "delta", "c2"))
+
+cred_interval <- ggplot(
+  interval_plot_data,
+  aes(x = prior, y = median, ymin = q2.5, ymax = q97.5)
+) +
+  geom_pointrange() +
+  facet_wrap(~ parameter, scales = "free_y") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Posterior medians and 95% credible intervals across priors",
+    x = "Prior",
+    y = "Posterior estimate"
+  )
+
+cred_interval
+
+ggsave("../../plots/plots_complex_model/cred_interval_sensitivity.png", plot = cred_interval, width = 6, height = 4, dpi = 300)
+```
