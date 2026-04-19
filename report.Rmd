@@ -37,7 +37,9 @@ library(png)
 library(grid)
 ```
 
-Michael Güntert, Sarenna Ulman, Sachit Sharma
+Michael Güntert, Sarenna Ulman, Sachit Sharma 
+
+(Github: https://github.com/sarennalu/final-project-stat405.git)
 
 # Problem Formulation:
 Alzheimer's disease is a progressive neurodegenerative disorder and the most common cause of dementia, characterized by declining memory and cognition. Early detection through biomarkers and MRI data is critical, as delayed treatment is associated with worse outcomes. In this project, we investigate clinical risk factors associated with Alzheimer's disease using Bayesian Statistics, aiming to identify which groups of people are at higher risk and support early intervention.
@@ -287,8 +289,8 @@ Each group member contributed roughly equally.  Michael wrote the literature rev
 # Appendix
 
 ### Sources:
-https://www.alz.org/alzheimers-dementia/what-is-dementia  \\
-https://www.who.int/news-room/fact-sheets/detail/dementia
+1. https://www.alz.org/alzheimers-dementia/what-is-dementia
+2. https://www.who.int/news-room/fact-sheets/detail/dementia
 
 
 ### Rank plots for Complex Model
@@ -636,6 +638,180 @@ p_beta34 <- ggplot(plot_df_beta34, aes(x = value, colour = method)) +
 p_beta34
 
 ggsave("../../plots/complex_model/beta34_density_hmc_vi.png", plot = p_beta34, width = 6, height = 4, dpi = 300)
+```
+
+### Calibration and Diagnostics of Complex Model  
+```{r, eval = FALSE, echo = TRUE}
+data_processed = read.csv("../../data/processed/oasis_processed.csv")
+
+data_processed = data_processed |> select(Age, Educ, nWBV, CDR, sex_male)
+
+head(data_processed)
+
+N = nrow(data_processed)
+y = data_processed$CDR
+age = data_processed$Age
+sex = data_processed$sex_male
+brain_volume =data_processed$nWBV
+educ = data_processed$Educ
+brain_educ = data_processed$Educ*data_processed$nWBV
+
+## Standardising
+age_z = as.numeric(scale(age))
+brain_volume_z = as.numeric(scale(brain_volume))
+educ_z = as.numeric(scale(educ))
+brain_educ_z = brain_volume_z*educ_z
+
+mod <- cmdstan_model("complex_model.stan")
+
+fit = mod$sample(
+  seed =405,
+  chains = 4,
+  refresh = 1000,
+  data = list( 
+          y = y, 
+          N = nrow(data_processed),
+          sex = sex,
+          age = age_z,
+          brain_volume = brain_volume_z,
+          educ = educ_z,
+          brain_educ = brain_educ_z
+        ), 
+  iter_sampling = 4000,
+  show_messages = FALSE
+)
+
+fit
+fit_summary <- fit$summary()
+write.csv(fit_summary, "../../results/complex_model/fit_summary.csv", row.names = FALSE)
+
+
+summary_df <- fit$summary()
+write.csv(summary_df, "fit_summary_complex_model.csv", row.names = FALSE)
+
+theme_set(theme_minimal())
+
+p_beta1 <- mcmc_trace(fit$draws("beta1"))  + xlab("Iteration Number")
+p_k0 <- mcmc_trace(fit$draws("k0"))     + xlab("Iteration Number")
+p_delta <- mcmc_trace(fit$draws("delta"))  + xlab("Iteration Number")
+p_beta34 <- mcmc_trace(fit$draws("beta34")) + xlab("Iteration Number")
+
+p_beta1
+p_k0
+p_delta
+p_beta34
+
+ggsave("../../plots/plots_complex_model/beta1_trace.png",
+       plot = p_beta1, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/k0_trace.png", 
+       plot = p_k0, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/delta_trace.png",
+       plot = p_delta, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/beta34_trace.png",
+       plot = p_beta34, width = 7, height = 4, dpi = 300)
+
+
+rank_hist_beta1 <- mcmc_rank_hist(fit$draws("beta1")) +
+                      ylab("no of MCMC samples with these ranks") +
+                      theme_minimal() + 
+                      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+rank_hist_beta2 <- mcmc_rank_hist(fit$draws("beta2")) +
+                      ylab("no of MCMC samples with these ranks") +
+                      theme_minimal() + 
+                      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+rank_hist_beta34 <- mcmc_rank_hist(fit$draws("beta34")) +
+                      ylab("no of MCMC samples with these ranks") +
+                      theme_minimal() + 
+                      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+rank_hist_k0 <- mcmc_rank_hist(fit$draws("k0")) +
+                  ylab("no of MCMC samples with these ranks") +
+                  theme_minimal() + 
+                  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+rank_hist_delta <- mcmc_rank_hist(fit$draws("delta")) +
+                      ylab("no of MCMC samples with these ranks") +
+                      theme_minimal() + 
+                      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+rank_hist_beta1
+rank_hist_beta2
+rank_hist_beta34
+rank_hist_k0
+rank_hist_delta
+
+ggsave("../../plots/plots_complex_model/beta1_rank.png", 
+       plot = rank_hist_beta1, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/beta2_rank.png",
+       plot = rank_hist_beta2, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/beta34_rank.png", 
+       plot = rank_hist_beta34, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/k0_rank.png", 
+       plot = rank_hist_k0, width = 7, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/k0_rank.png", 
+       plot = rank_hist_delta, width = 7, height = 4, dpi = 300)
+  
+
+pred_0 = colMeans(as_draws_matrix(fit$draws("p0")))
+pred_05= colMeans(as_draws_matrix(fit$draws("p05")))
+pred_1 =  colMeans(as_draws_matrix(fit$draws("p1")))
+
+
+calibration_check = function(pred_prob, observed_outcome, bins) {
+  df = data.frame(predicted = pred_prob, 
+                  observed = observed_outcome)
+  
+  df$bin = cut(df$predicted, breaks = bins)
+  
+  summary = df |> group_by(bin) |>
+           summarise(mean_predicted = mean(predicted),
+                     mean_observed = mean(observed), 
+                     n = n())
+        
+  return(summary)
+    
+}
+
+
+observed_0 = as.numeric(data_processed$CDR == 0)
+observed_1 = as.numeric(data_processed$CDR == 1)
+observed_05= as.numeric(data_processed$CDR == 0.5)
+
+c0 = calibration_check(pred_0, observed_0, bins = 8)
+c1 = calibration_check(pred_1, observed_1, bins = 8)
+c05 = calibration_check(pred_05, observed_05, bins = 8)
+
+c0 
+c1
+c05
+
+calibration_plot = function(cal_df, title) {
+  ggplot(cal_df, aes(x = mean_predicted, y = mean_observed)) + 
+  geom_point() + 
+  geom_line() +
+  labs(x = "Mean of the predicted value", y = "Proportion of Observed") +
+  geom_abline(intercept = 0, slope = 1, 
+                linetype = "dashed", color = "red") +
+  ggtitle(title) 
+}
+
+
+p_c0  <- calibration_plot(c0, "Class 0")
+p_c1  <- calibration_plot(c1, "Class 1")
+p_c05 <- calibration_plot(c05, "Class 05")
+
+p_c0
+p_c1
+p_c05
+
+ggsave("../../plots/plots_complex_model/calibration_class0.png",
+       plot = p_c0, width = 6, height = 5, dpi = 300)
+ggsave("../../plots/plots_complex_model/calibration_class1.png",
+       plot = p_c1, width = 6, height = 5, dpi = 300)
+ggsave("../../plots/plots_complex_model/calibration_class05.png", 
+       plot = p_c05, width = 6, height = 5, dpi = 300)
 ```
 
 ### Sensitivity Analysis Naive Model
@@ -1043,7 +1219,8 @@ posterior_beta3 <- ggplot(posterior_beta3, aes(x = value, color = prior)) +
 
 posterior_beta3
 
-ggsave("../../plots/plots_complex_model/posterior_beta3_sensitivity.png", plot = posterior_beta3, width = 6, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/posterior_beta3_sensitivity.png", 
+       plot = posterior_beta3, width = 6, height = 4, dpi = 300)
 
 posterior_beta34 <- map2_dfr(
   fit_list,
@@ -1065,7 +1242,8 @@ posterior_beta34 <- ggplot(posterior_beta34, aes(x = value, color = prior)) +
 
 posterior_beta34
 
-ggsave("../../plots/plots_complex_model/posterior_beta34_sensitivity.png", plot = posterior_beta3, width = 6, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/posterior_beta34_sensitivity.png",
+       plot = posterior_beta3, width = 6, height = 4, dpi = 300)
 
 interval_plot_data <- summary_table %>%
   filter(parameter %in% c("beta3", "beta34", "c1", "delta", "c2"))
@@ -1085,5 +1263,7 @@ cred_interval <- ggplot(
 
 cred_interval
 
-ggsave("../../plots/plots_complex_model/cred_interval_sensitivity.png", plot = cred_interval, width = 6, height = 4, dpi = 300)
+ggsave("../../plots/plots_complex_model/cred_interval_sensitivity.png", 
+       plot = cred_interval, width = 6, height = 4, dpi = 300)
 ```
+
