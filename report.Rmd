@@ -284,7 +284,7 @@ Our analysis has several limitations. We had limited data for CDR classes 0.5 an
 Our results confirm that brain volume is positively associated with CDR scores, consistent with the broader biological literature. The finding that males face higher dementia risk (conditional on age, brain volume, and education) offers an interesting angle but should be interpreted cautiously, as it contradicts the general consensus that women are at greater risk. This discrepancy reflects the conditioned nature of our coefficients. Finally, we found no support for the protective effect of education on dementia severity.
 
 # Contributions of Each Group Member
-Each group member contributed roughly equally.  Michael wrote the literature review, performed the sensitivity analysis for both models, and the variational inference for the complex model.  Sachit wrote the problem formulation, primarily designed both models, and implemented the complex model, including the stan implementation, calibration checks, model diagnostics, evaluation of the posterior approximation, and the code correctness for both models.  Sarenna set up the repository/virtual environment, processing the raw data and the exploratory data analysis, and implementing the naive model, including the stan implementation, calibration checks, model diagnostics, evaluation of the posterior approximation, and the leave-one-out for both models.
+Each group member contributed roughly equally.  Michael wrote the literature review, performed the sensitivity analysis for both models, and the variational inference for the complex model.  Sachit wrote the problem formulation, primarily designed both models, and implemented the complex model, including the stan implementation, calibration checks, model diagnostics, evaluation of the posterior approximation, and the code correctness for both models.  Sarenna set up the repository/virtual environment, processing the raw data and the exploratory data analysis, and implementing the naive model, including the stan implementation, calibration checks, model diagnostics, evaluation of the posterior approximation, and the leave-one-out for both models. We used some AI tools in this project (refer to Appendix for ways in which AI was used). 
 
 # Appendix
 
@@ -1266,4 +1266,16 @@ cred_interval
 ggsave("../../plots/plots_complex_model/cred_interval_sensitivity.png", 
        plot = cred_interval, width = 6, height = 4, dpi = 300)
 ```
+
+### Use of AI tools
+
+AI tools (like ChatGPT, Claude, Gemini) were used in the following ways:
+
+1. To shorten down long paragraphs to fit the report within word limit. 
+2. To convert handwritten math to Latex. 
+3. To figure out how to improve layouts of the plot and debug code while implementnig the naive 
+and complex models in R. 
+4. To find how calibration can be performed in multi-class problems. 
+5. To verify results with generally known facts about dimentia and Alzheimer's.
+
 
